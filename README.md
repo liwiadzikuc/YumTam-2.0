@@ -2,7 +2,7 @@
 
 YumTam to nowoczesna aplikacja mobilna stworzona w technologii React Native, zaprojektowana z mysla o mieszkancach i turystach odkrywajacych kulinarna mapę Wroclawia.
 
-Aplikacja laczy w sobie funkcje interaktywnego przewodnika z osobistym dziennikiem wspomnien. YumTam zmienia zwykle wyjscie do restauracji w gre terenowa – Twoim celem jest "zazielenienie" mapy poprzez odwiedzanie nowych miejsc, ocenianie ich i budowanie wlasnej bazy ulubionych lokali. To narzedzie, ktore raz na zawsze rozwiazuje dylemat "Gdzie dzisiaj zjesc?", oferujac inteligentne sugestie oparte na Twojej historii.
+Aplikacja laczy w sobie funkcje interaktywnego przewodnika z osobistym dziennikiem wspomnien. YumTam zmienia zwykle wyjscie do restauracji w gre terenowa – Twoim celem jest "zazielenienie" mapy poprzez odwiedzanie nowych miejsc, ocenianie ich i budowanie wlasnej bazy ulubionych lokali. To narzedzie, ktore raz na zawsze rozwiazuje dylemat "Gdzie dzisiaj zjesc?".
 
 ## Glowne Funkcjonalnosci
 
@@ -18,11 +18,11 @@ Serce aplikacji stanowi interaktywna mapa, ktora zyje razem z uzytkownikiem. To 
 - **Kompletne informacje**: Kazda wizytowka lokalu zawiera menu z cenami, zdjecia, oceny oraz bezposrednie przekierowania do nawigacji Google Maps i profilu na Instagramie.
 
 ### 2. Dziennik Smakosza (Journal)
-Twoja prywatna ksiega wspomnien. Zamiast zapominac, gdzie jadles najlepsza pizze rok temu, zapisz to w YumTam.
+Prywatna ksiega wspomnien. Zamiast zapominac, gdzie jadles najlepsza pizze rok temu, zapisz to w YumTam.
 
-- **Szczegolowe wspomnienia**: Do kazdej wizyty mozesz dodac wlasne zdjecie potrawy, ocene w skali 1-5 gwiazdek, notatke tekstowa oraz liste osob towarzyszacych.
+- **Szczegolowe wspomnienia**: Do kazdej wizyty mozesz dodac wlasne zdjecie, ocene w skali 1-5 gwiazdek, notatke tekstowa oraz liste osob towarzyszacych.
 - **Grywalizacja i Statystyki**: Aplikacja motywuje do dzialania poprzez pasek postepu, ktory pokazuje, jaki procent wroclawskiej sceny gastronomicznej juz odkryles.
-- **Zaawansowane sortowanie**: Przegladaj swoje wpisy w sposob, ktory Ci odpowiada – od najnowszych, wedlug najlepszych ocen (by szybko polecic cos znajomym) lub alfabetycznie.
+- **Zaawansowane sortowanie**: Przegladaj swoje wpisy w sposob, ktory Ci odpowiada – od najnowszych, wedlug najlepszych ocen lub alfabetycznie.
 - **Pelna synchronizacja**: Dziennik jest scisle polaczony z Mapa. Dodanie recenzji w Dzienniku natychmiast zmienia status pinezki na Mapie na "Odwiedzone" (kolor zielony).
 
 ## Stack Technologiczny
@@ -47,24 +47,24 @@ Aby uruchomic projekt, potrzebujesz zainstalowanych nastepujacych narzedzi:
 
 Postepuj zgodnie z ponizszymi krokami, aby uruchomic aplikacje na swoim urzadzeniu.
 
-1. Otworz terminal (konsole) i sklonuj repozytorium na swoj dysk:
+1. Otworz terminal i sklonuj repozytorium na swoj dysk:
 
 ```bash
 git clone https://github.com/mleczako/YumTam.git
 ```
 
-2. Nastepnie wejdz do katalogu projektu (to bardzo wazne, zebys byl w srodku folderu przed wpisywaniem kolejnych komend):
+2. Nastepnie wejdz do katalogu projektu:
 
 ```bash
 cd YumTam
 ```
 
-3. Zainstaluj biblioteki. Wpisz ponizsza komende, aby automatycznie pobrac i zainstalowac wszystkie zaleznosci wymienione w pliku package.json (np. React Navigation, Mapy):
+3. Zainstaluj biblioteki. Wpisz ponizsza komende, aby automatycznie pobrac i zainstalowac wszystkie zaleznosci wymienione w pliku package.json:
 
 ```bash
 npm install
 ```
-Uwaga: Ten proces moze potrwac kilka minut. Poczekaj, az pasek postepu dojdzie do konca.
+Uwaga: Ten proces moze potrwac kilka minut.
 
 4. Uruchom serwer deweloperski. Gdy instalacja dobiegnie konca, wpisz:
 
@@ -79,6 +79,6 @@ npx expo start
 
 - Android: Wybierz opcje "Scan QR Code" na ekranie glownym aplikacji i zeskanuj kod z terminala.
 
-- iOS: Otworz systemowa aplikacje Aparat (Camera), nakieruj na kod QR i kliknij w powiadomienie "Otwórz w Expo Go", ktore sie pojawi.
+- iOS: Otworz aparat, nakieruj na kod QR i kliknij w powiadomienie "Otwórz w Expo Go", ktore sie pojawi.
 
 6. Aplikacja powinna sie zbudowac i automatycznie uruchomic na Twoim ekranie.
