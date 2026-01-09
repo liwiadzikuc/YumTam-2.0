@@ -45,9 +45,7 @@ export default function RestaurantCard({ restaurant, onClose, onDetails }) {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    // --- ZMIANA TUTAJ ---
-    bottom: 100, // Podniosłem z 30 na 100, żeby nie zasłaniał paska nawigacji
-    // --------------------
+    bottom: 100, 
     left: 20,
     right: 20,
     backgroundColor: 'white',

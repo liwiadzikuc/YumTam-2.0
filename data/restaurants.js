@@ -16,7 +16,7 @@ export const restaurants = [
       { name: 'Śledzik w oleju', price: 12 },
       { name: 'Zimne nóżki', price: 12 },
       { name: 'Gzik', price: 12 },
-      { name: 'Piwo (0.3l)', price: 9 } // Było w menu, jest OK
+      { name: 'Piwo (0.3l)', price: 9 }
     ]
   },
 
@@ -37,7 +37,7 @@ export const restaurants = [
       { name: 'Margherita', price: 32 },
       { name: 'Diavola', price: 38 },
       { name: 'Burrata', price: 42 },
-      { name: 'Piwo Kraftowe', price: 18 } // Dodano
+      { name: 'Piwo Kraftowe', price: 18 } 
     ]
   },
 
@@ -58,7 +58,7 @@ export const restaurants = [
       { name: 'Standard', price: 29 },
       { name: 'Gonzales', price: 34 },
       { name: 'Frytki z batatów', price: 16 },
-      { name: 'Piwo', price: 14 } // Dodano
+      { name: 'Piwo', price: 14 }
     ]
   },
 
@@ -79,7 +79,7 @@ export const restaurants = [
       { name: 'Tatar wołowy', price: 15 },
       { name: 'Kiełbasa z wody', price: 12 },
       { name: 'Wódka', price: 9 },
-      { name: 'Piwo', price: 9 } // Było w menu, jest OK
+      { name: 'Piwo', price: 9 } 
     ]
   },
 
@@ -100,7 +100,7 @@ export const restaurants = [
       { name: 'Tacos (3szt)', price: 36 },
       { name: 'Big Ass Burrito', price: 39 },
       { name: 'Nachos Supreme', price: 28 },
-      { name: 'Cerveza (Piwo)', price: 16 } // Dodano
+      { name: 'Cerveza (Piwo)', price: 16 }
     ]
   },
 
@@ -121,7 +121,7 @@ export const restaurants = [
       { name: 'Schabowy gigant', price: 42 },
       { name: 'Pierogi Ruskie', price: 28 },
       { name: 'Żurek w chlebie', price: 26 },
-      { name: 'Piwo Regionalne', price: 15 } // Dodano
+      { name: 'Piwo Regionalne', price: 15 } 
     ]
   },
 
@@ -141,7 +141,7 @@ export const restaurants = [
     menu: [
       { name: 'Zestaw Lunchowy', price: 39 },
       { name: 'Rolka Philadelphia', price: 28 },
-      { name: 'Piwo Asahi', price: 15 }, // Dodano
+      { name: 'Piwo Asahi', price: 15 }, 
       { name: 'Herbata Jaśminowa', price: 12 }
     ]
   },
@@ -163,7 +163,7 @@ export const restaurants = [
       { name: 'Burger Jack Daniels', price: 48 },
       { name: 'Stek z Antrykotu', price: 89 },
       { name: 'Jar Drink', price: 32 },
-      { name: 'Piwo Lager', price: 19 } // Dodano
+      { name: 'Piwo Lager', price: 19 }
     ]
   },
 
@@ -184,7 +184,7 @@ export const restaurants = [
       { name: 'Bao z boczkiem', price: 29 },
       { name: 'Salmon Bowl', price: 44 },
       { name: 'Tofu Curry', price: 38 },
-      { name: 'Piwo Singha', price: 16 } // Dodano
+      { name: 'Piwo Singha', price: 16 } 
     ]
   },
 
@@ -204,7 +204,7 @@ export const restaurants = [
     menu: [
       { name: 'Patatas Bravas', price: 18 },
       { name: 'Chorizo w winie', price: 26 },
-      { name: 'Piwo Estrella', price: 15 }, // Dodano
+      { name: 'Piwo Estrella', price: 15 }, 
       { name: 'Kieliszek Wina', price: 18 }
     ]
   },

@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { useContext, useEffect, useRef, useState } from 'react';
-import { Keyboard, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Alert, Keyboard, StyleSheet, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 
 import DiscoverHeader from '../components/DiscoverHeader';
@@ -49,9 +50,30 @@ export default function DiscoverScreen({ navigation }) {
     return beerItem ? beerItem.price : 999;
   };
 
+  const displayedRestaurants = restaurants.filter(item => {
+    const matchesSearch = item.name.toLowerCase().includes(searchText.toLowerCase());
+    const matchesCategory = selectedCategories.length === 0 || selectedCategories.some(cat => item.cuisine.includes(cat));
+    
+    const currentBeerPrice = getBeerPrice(item);
+    const matchesBeer = !isCheapBeer || currentBeerPrice <= 10;
+    
+    const matchesLunch = !hasLunch || item.hasLunch;
+    
+    return matchesSearch && matchesCategory && matchesBeer && matchesLunch;
+  });
+
   const handleRandomize = () => {
-    const unvisited = restaurants.filter(r => !visitedRestaurantIds.includes(r.id));
-    const pool = unvisited.length > 0 ? unvisited : restaurants;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); 
+
+    if (displayedRestaurants.length === 0) {
+        Alert.alert("Ups!", "Brak restauracji spełniających te kryteria.");
+        return;
+    }
+
+    const unvisited = displayedRestaurants.filter(r => !visitedRestaurantIds.includes(r.id));
+    
+    const pool = unvisited.length > 0 ? unvisited : displayedRestaurants;
+
     const randomIndex = Math.floor(Math.random() * pool.length);
     const randomPlace = pool[randomIndex];
 
@@ -62,15 +84,6 @@ export default function DiscoverScreen({ navigation }) {
       latitudeDelta: 0.005, longitudeDelta: 0.005,
     }, 1000);
   };
-
-  const displayedRestaurants = restaurants.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchText.toLowerCase());
-    const matchesCategory = selectedCategories.length === 0 || selectedCategories.some(cat => item.cuisine.includes(cat));
-    const currentBeerPrice = getBeerPrice(item);
-    const matchesBeer = !isCheapBeer || currentBeerPrice <= 10;
-    const matchesLunch = !hasLunch || item.hasLunch;
-    return matchesSearch && matchesCategory && matchesBeer && matchesLunch;
-  });
 
   const activeFiltersCount = selectedCategories.length + (isCheapBeer ? 1 : 0) + (hasLunch ? 1 : 0);
 
@@ -84,15 +97,18 @@ export default function DiscoverScreen({ navigation }) {
   const handleRegionChangeComplete = (region) => {
     const latDiff = Math.abs(region.latitude - CENTER_LAT);
     const lngDiff = Math.abs(region.longitude - CENTER_LNG);
+
     if (latDiff > MAX_DELTA * 1.5 || lngDiff > MAX_DELTA * 1.5) {
       mapRef.current?.animateToRegion({
-        latitude: CENTER_LAT, longitude: CENTER_LNG,
-        latitudeDelta: 0.02, longitudeDelta: 0.02,
+        latitude: CENTER_LAT,
+        longitude: CENTER_LNG,
+        latitudeDelta: 0.02,
+        longitudeDelta: 0.02,
       }, 500); 
     }
   };
 
-  const markersKey = `${isCheapBeer}-${hasLunch}-${selectedCategories.join(',')}-${searchText}-${favorites.length}`; 
+  const markersKey = `${isCheapBeer}-${hasLunch}-${selectedCategories.join(',')}-${searchText}-${favorites.length}`;
 
   return (
     <View style={styles.container}>

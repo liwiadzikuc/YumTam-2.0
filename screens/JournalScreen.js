@@ -2,37 +2,32 @@ import { Ionicons } from '@expo/vector-icons';
 import { useContext, useMemo, useState } from 'react';
 import { Alert, FlatList, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { VisitsContext } from '../context/VisitsContext';
-import { restaurants } from '../data/restaurants'; // Potrzebne do obliczenia % postępu
+import { restaurants } from '../data/restaurants';
 
 export default function JournalScreen({ navigation }) {
   const { visits, deleteVisit } = useContext(VisitsContext);
   
-  // Stan sortowania: 'newest', 'oldest', 'rating', 'name'
   const [sortBy, setSortBy] = useState('newest');
 
-  // --- OBLICZANIE POSTĘPU ---
   const totalRestaurants = restaurants.length;
-  // Używamy Set, żeby policzyć unikalne restauracje (jeśli byłeś 2 razy w jednej, liczy się jako 1)
   const visitedUniqueCount = new Set(visits.map(v => v.restaurantId)).size;
   const progressPercent = Math.round((visitedUniqueCount / totalRestaurants) * 100);
 
-  // --- LOGIKA SORTOWANIA ---
-  // Używamy useMemo, żeby nie sortować przy każdym kliknięciu w inne elementy, tylko gdy zmienią się wizyty lub typ sortowania
+  
   const sortedVisits = useMemo(() => {
     if (!visits) return [];
     
-    // Tworzymy kopię tablicy, żeby nie psuć oryginału
     const data = [...visits];
 
     switch (sortBy) {
       case 'newest':
-        return data.reverse(); // Domyślnie są dodawane chronologicznie, więc odwracamy
+        return data.reverse(); 
       case 'oldest':
-        return data; // Oryginalna kolejność (od najstarszych)
+        return data; 
       case 'rating':
-        return data.sort((a, b) => (b.rating || 0) - (a.rating || 0)); // Od najwyższej oceny
+        return data.sort((a, b) => (b.rating || 0) - (a.rating || 0)); 
       case 'name':
-        return data.sort((a, b) => a.restaurantName.localeCompare(b.restaurantName)); // Alfabetycznie
+        return data.sort((a, b) => a.restaurantName.localeCompare(b.restaurantName)); 
       default:
         return data.reverse();
     }
@@ -67,7 +62,6 @@ export default function JournalScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        {/* GWIAZDKI */}
         {item.rating > 0 && (
            <View style={styles.ratingRow}>
              {[...Array(5)].map((_, i) => (
@@ -95,7 +89,6 @@ export default function JournalScreen({ navigation }) {
     </View>
   );
 
-  // Komponent przycisku sortowania
   const SortButton = ({ title, value }) => (
     <TouchableOpacity 
       style={[styles.sortButton, sortBy === value && styles.sortButtonActive]} 
@@ -111,7 +104,6 @@ export default function JournalScreen({ navigation }) {
     <View style={styles.container}>
       <Text style={styles.headerTitle}>Twój Dziennik</Text>
 
-      {/* --- PASEK POSTĘPU --- */}
       <View style={styles.progressContainer}>
         <View style={styles.progressHeader}>
           <Text style={styles.progressText}>Odkryte miejsca</Text>
@@ -122,7 +114,6 @@ export default function JournalScreen({ navigation }) {
         </View>
       </View>
 
-      {/* --- SORTOWANIE --- */}
       <View style={styles.sortContainer}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <SortButton title="Najnowsze" value="newest" />
@@ -147,7 +138,6 @@ export default function JournalScreen({ navigation }) {
         />
       )}
 
-      {/* FAB */}
       <TouchableOpacity 
         style={styles.fab} 
         onPress={() => navigation.navigate('AddVisit')}
@@ -172,7 +162,6 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   
-  // STYLE POSTĘPU
   progressContainer: {
     backgroundColor: 'white',
     padding: 15,
@@ -196,7 +185,6 @@ const styles = StyleSheet.create({
     height: '100%', backgroundColor: '#FF4500', borderRadius: 4
   },
 
-  // STYLE SORTOWANIA
   sortContainer: {
     marginBottom: 15,
     height: 40,
@@ -210,7 +198,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   sortButtonActive: {
-    backgroundColor: '#333', // Aktywny przycisk ciemny
+    backgroundColor: '#333',
   },
   sortButtonText: {
     fontSize: 13,
@@ -221,7 +209,6 @@ const styles = StyleSheet.create({
     color: 'white',
   },
 
-  // KARTA WIZYTY
   card: {
     backgroundColor: 'white',
     borderRadius: 16,
