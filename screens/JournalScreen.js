@@ -1,300 +1,195 @@
+// import { Ionicons } from '@expo/vector-icons';
+// import { useFocusEffect } from '@react-navigation/native';
+// import * as SQLite from 'expo-sqlite';
+// import { useCallback, useState } from 'react';
+// import { Alert, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
+// export default function JournalScreen() {
+//   const [visits, setVisits] = useState([]);
+//   const [stats, setStats] = useState({ total: 0, discovered: 0, percent: 0 });
+
+//   const loadData = async () => {
+//     try {
+//       const db = await SQLite.openDatabaseAsync('yumtam.db');
+      
+//       // Pobieranie wizyt wraz z ich pierwszym zdjęciem
+//       const vData = await db.getAllAsync(`
+//         SELECT V.*, R.name as resName, M.file_path as img 
+//         FROM Visits V 
+//         JOIN Restaurants R ON V.restaurant_id = R.id 
+//         LEFT JOIN MediaItems M ON M.visit_id = V.id AND M.media_type = 'image'
+//         GROUP BY V.id ORDER BY V.id DESC
+//       `);
+//       setVisits(vData);
+
+//       // Statystyki dla pomarańczowego panelu
+//       const totalRes = await db.getFirstAsync('SELECT COUNT(*) as c FROM Restaurants');
+//       const discRes = await db.getFirstAsync('SELECT COUNT(DISTINCT restaurant_id) as c FROM Visits');
+//       const p = totalRes.c > 0 ? Math.round((discRes.c / totalRes.c) * 100) : 0;
+//       setStats({ total: totalRes.c, discovered: discRes.c, percent: p });
+//     } catch (error) { console.error(error); }
+//   };
+
+//   useFocusEffect(useCallback(() => { loadData(); }, []));
+
+//   const deleteVisit = async (id) => {
+//     Alert.alert("Usuń", "Czy na pewno usunąć to wspomnienie?", [
+//       { text: "Anuluj" },
+//       { text: "Usuń", style: 'destructive', onPress: async () => {
+//           const db = await SQLite.openDatabaseAsync('yumtam.db');
+//           await db.runAsync('DELETE FROM Visits WHERE id = ?', [id]);
+//           loadData();
+//       }}
+//     ]);
+//   };
+
+//   return (
+//     <View style={styles.container}>
+//       <View style={styles.orangeCard}>
+//         <View>
+//           <Text style={styles.statsLabel}>Odkryte miejsca</Text>
+//           <Text style={styles.statsNum}>{stats.discovered} / {stats.total}</Text>
+//         </View>
+//         <View style={styles.circle}><Text style={styles.percentText}>{stats.percent}%</Text></View>
+//       </View>
+
+//       <FlatList
+//         data={visits}
+//         keyExtractor={item => item.id.toString()}
+//         renderItem={({ item }) => (
+//           <View style={styles.card}>
+//             {item.img && <Image source={{ uri: item.img }} style={styles.cardImg} />}
+//             <View style={styles.cardBody}>
+//               <View style={styles.cardHeader}>
+//                 <Text style={styles.resName}>{item.resName}</Text>
+//                 <TouchableOpacity onPress={() => deleteVisit(item.id)}>
+//                   <Ionicons name="trash-outline" size={20} color="#FF4500" />
+//                 </TouchableOpacity>
+//               </View>
+//               <Text style={styles.date}>{item.visit_date} • {'⭐'.repeat(item.rating)}</Text>
+//               {item.notes ? <Text style={styles.notes}>{item.notes}</Text> : null}
+//             </View>
+//           </View>
+//         )}
+//       />
+//     </View>
+//   );
+// }
+
+// const styles = StyleSheet.create({
+//   container: { flex: 1, backgroundColor: '#fff', padding: 20, paddingTop: 60 },
+//   orangeCard: { backgroundColor: '#FF4500', borderRadius: 25, padding: 25, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+//   statsLabel: { color: '#fff', fontSize: 14 },
+//   statsNum: { color: '#fff', fontSize: 32, fontWeight: 'bold' },
+//   circle: { width: 60, height: 60, borderRadius: 30, borderWidth: 4, borderColor: 'rgba(255,255,255,0.3)', justifyContent: 'center', alignItems: 'center' },
+//   percentText: { color: '#fff', fontWeight: 'bold' },
+//   card: { borderRadius: 20, backgroundColor: '#fff', marginBottom: 15, elevation: 3, overflow: 'hidden', borderWidth: 1, borderColor: '#eee' },
+//   cardImg: { width: '100%', height: 120 },
+//   cardBody: { padding: 15 },
+//   cardHeader: { flexDirection: 'row', justifyContent: 'space-between' },
+//   resName: { fontSize: 18, fontWeight: 'bold' },
+//   date: { color: '#FF4500', fontSize: 12, marginVertical: 5 },
+//   notes: { color: '#666', fontSize: 14 }
+// });
 import { Ionicons } from '@expo/vector-icons';
-import { useContext, useMemo, useState } from 'react';
-import { Alert, FlatList, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { VisitsContext } from '../context/VisitsContext';
-import { restaurants } from '../data/restaurants';
+import { useFocusEffect } from '@react-navigation/native';
+import * as SQLite from 'expo-sqlite';
+import { useCallback, useState } from 'react';
+import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-export default function JournalScreen({ navigation }) {
-  const { visits, deleteVisit } = useContext(VisitsContext);
-  
-  const [sortBy, setSortBy] = useState('newest');
+export default function JournalScreen() {
+  const [visits, setVisits] = useState([]);
+  const [stats, setStats] = useState({ total: 0, discovered: 0, percent: 0 });
 
-  const totalRestaurants = restaurants.length;
-  const visitedUniqueCount = new Set(visits.map(v => v.restaurantId)).size;
-  const progressPercent = Math.round((visitedUniqueCount / totalRestaurants) * 100);
+  const loadData = async () => {
+    try {
+      const db = await SQLite.openDatabaseAsync('yumtam.db');
+      
+      const vData = await db.getAllAsync(`
+        SELECT 
+          V.*, 
+          R.name as resName, 
+          (SELECT file_path FROM MediaItems WHERE visit_id = V.id AND media_type = 'image' LIMIT 1) as img,
+          (SELECT file_path FROM MediaItems WHERE visit_id = V.id AND media_type = 'audio' LIMIT 1) as audioPath
+        FROM Visits V 
+        JOIN Restaurants R ON V.restaurant_id = R.id 
+        GROUP BY V.id 
+        ORDER BY V.id DESC
+      `);
+      setVisits(vData);
 
-  
-  const sortedVisits = useMemo(() => {
-    if (!visits) return [];
-    
-    const data = [...visits];
-
-    switch (sortBy) {
-      case 'newest':
-        return data.reverse(); 
-      case 'oldest':
-        return data; 
-      case 'rating':
-        return data.sort((a, b) => (b.rating || 0) - (a.rating || 0)); 
-      case 'name':
-        return data.sort((a, b) => a.restaurantName.localeCompare(b.restaurantName)); 
-      default:
-        return data.reverse();
-    }
-  }, [visits, sortBy]);
-
-  const handleDelete = (id) => {
-    Alert.alert(
-      "Usuń wpis",
-      "Czy na pewno chcesz usunąć to wspomnienie?",
-      [
-        { text: "Anuluj", style: "cancel" },
-        { text: "Usuń", style: "destructive", onPress: () => deleteVisit(id) }
-      ]
-    );
+      const totalRes = await db.getFirstAsync('SELECT COUNT(*) as c FROM Restaurants');
+      const discRes = await db.getFirstAsync('SELECT COUNT(DISTINCT restaurant_id) as c FROM Visits');
+      const p = totalRes.c > 0 ? Math.round((discRes.c / totalRes.c) * 100) : 0;
+      setStats({ total: totalRes.c, discovered: discRes.c, percent: p });
+    } catch (error) { console.error(error); }
   };
 
-  const renderVisitItem = ({ item }) => (
-    <View style={styles.card}>
-      {item.imageUri && (
-        <Image source={{ uri: item.imageUri }} style={styles.image} />
-      )}
-      
-      <View style={styles.content}>
-        <View style={styles.header}>
-          <View style={{flex: 1}}>
-            <Text style={styles.restaurantName}>{item.restaurantName}</Text>
-            <Text style={styles.date}>{item.date}</Text>
-          </View>
-          
-          <TouchableOpacity onPress={() => handleDelete(item.id)} style={styles.deleteButton}>
-            <Ionicons name="trash-outline" size={20} color="#FF3B30" />
-          </TouchableOpacity>
-        </View>
-
-        {item.rating > 0 && (
-           <View style={styles.ratingRow}>
-             {[...Array(5)].map((_, i) => (
-               <Ionicons 
-                 key={i} 
-                 name={i < item.rating ? "star" : "star-outline"} 
-                 size={14} 
-                 color="#FFD700" 
-               />
-             ))}
-           </View>
-        )}
-
-        {item.guests ? (
-          <View style={styles.row}>
-            <Ionicons name="people-outline" size={16} color="#666" />
-            <Text style={styles.guestsText}>{item.guests}</Text>
-          </View>
-        ) : null}
-
-        {item.note ? (
-          <Text style={styles.note}>{item.note}</Text>
-        ) : null}
-      </View>
-    </View>
-  );
-
-  const SortButton = ({ title, value }) => (
-    <TouchableOpacity 
-      style={[styles.sortButton, sortBy === value && styles.sortButtonActive]} 
-      onPress={() => setSortBy(value)}
-    >
-      <Text style={[styles.sortButtonText, sortBy === value && styles.sortButtonTextActive]}>
-        {title}
-      </Text>
-    </TouchableOpacity>
-  );
+  useFocusEffect(useCallback(() => { loadData(); }, []));
 
   return (
     <View style={styles.container}>
-      <Text style={styles.headerTitle}>Twój Dziennik</Text>
-
-      <View style={styles.progressContainer}>
-        <View style={styles.progressHeader}>
-          <Text style={styles.progressText}>Odkryte miejsca</Text>
-          <Text style={styles.progressPercent}>{visitedUniqueCount} / {totalRestaurants} ({progressPercent}%)</Text>
+      <View style={styles.orangeCard}>
+        <View>
+          <Text style={styles.statsLabel}>Odkryte miejsca</Text>
+          <Text style={styles.statsNum}>{stats.discovered} / {stats.total}</Text>
         </View>
-        <View style={styles.progressBarBackground}>
-          <View style={[styles.progressBarFill, { width: `${progressPercent}%` }]} />
-        </View>
+        <View style={styles.circle}><Text style={styles.percentText}>{stats.percent}%</Text></View>
       </View>
 
-      <View style={styles.sortContainer}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <SortButton title="Najnowsze" value="newest" />
-          <SortButton title="Najstarsze" value="oldest" />
-          <SortButton title="Najlepsze" value="rating" />
-          <SortButton title="A-Z" value="name" />
-        </ScrollView>
-      </View>
+      <FlatList
+        data={visits}
+        keyExtractor={item => item.id.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            {item.img && <Image source={{ uri: item.img }} style={styles.cardImg} />}
+            <View style={styles.cardBody}>
+              <View style={styles.cardHeader}>
+                <Text style={styles.resName}>{item.resName}</Text>
+                {item.audioPath && (
+                  <View style={styles.audioBadge}>
+                    <Ionicons name="mic" size={16} color="#FF4500" />
+                    <Text style={styles.audioText}>Notatka</Text>
+                  </View>
+                )}
+              </View>
+              
+              <Text style={styles.date}>{item.visit_date} • {'⭐'.repeat(item.rating)}</Text>
+              {item.notes ? <Text style={styles.notes}>{item.notes}</Text> : null}
 
-      {sortedVisits.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Ionicons name="book-outline" size={64} color="#ccc" />
-          <Text style={styles.emptyText}>Twój dziennik jest pusty.</Text>
-          <Text style={styles.emptySubText}>Dodaj pierwszą wizytę!</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={sortedVisits}
-          keyExtractor={(item) => item.id}
-          renderItem={renderVisitItem}
-          contentContainerStyle={{ paddingBottom: 100 }}
-        />
-      )}
-
-      <TouchableOpacity 
-        style={styles.fab} 
-        onPress={() => navigation.navigate('AddVisit')}
-      >
-        <Ionicons name="add" size={32} color="white" />
-      </TouchableOpacity>
+              {item.audioPath && (
+                <TouchableOpacity 
+                  style={styles.playButtonDisabled} 
+                  disabled={true} 
+                >
+                  <Ionicons name="play-circle" size={24} color="#ccc" />
+                  <Text style={styles.playTextDisabled}>Odtwórz wspomnienie (wkrótce)</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        )}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-    paddingHorizontal: 20,
-    paddingTop: 50,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    color: '#333',
-  },
-  
-  progressContainer: {
-    backgroundColor: 'white',
-    padding: 15,
-    borderRadius: 12,
-    marginBottom: 15,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  progressHeader: {
-    flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8,
-  },
-  progressText: { fontWeight: '600', color: '#555' },
-  progressPercent: { fontWeight: 'bold', color: '#FF4500' },
-  progressBarBackground: {
-    height: 8, backgroundColor: '#eee', borderRadius: 4, overflow: 'hidden'
-  },
-  progressBarFill: {
-    height: '100%', backgroundColor: '#FF4500', borderRadius: 4
-  },
-
-  sortContainer: {
-    marginBottom: 15,
-    height: 40,
-  },
-  sortButton: {
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    backgroundColor: '#e0e0e0',
-    borderRadius: 20,
-    marginRight: 10,
-    justifyContent: 'center',
-  },
-  sortButtonActive: {
-    backgroundColor: '#333',
-  },
-  sortButtonText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#555',
-  },
-  sortButtonTextActive: {
-    color: 'white',
-  },
-
-  card: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    marginBottom: 20,
-    overflow: 'hidden',
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  image: {
-    width: '100%',
-    height: 180,
-    backgroundColor: '#eee',
-  },
-  content: {
-    padding: 15,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 8,
-  },
-  restaurantName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  date: {
-    fontSize: 12,
-    color: '#999',
-  },
-  deleteButton: {
-    padding: 5,
-  },
-  ratingRow: {
-    flexDirection: 'row',
-    marginBottom: 8,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  guestsText: {
-    fontSize: 14,
-    color: '#666',
-    marginLeft: 6,
-  },
-  note: {
-    fontSize: 15,
-    color: '#444',
-    lineHeight: 22,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 50,
-  },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#555',
-    marginTop: 10,
-  },
-  emptySubText: {
-    color: '#999',
-    marginTop: 5,
-  },
-  fab: {
-    position: 'absolute',
-    right: 20,
-    bottom: 90,
-    backgroundColor: '#FF4500',
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-  },
+  container: { flex: 1, backgroundColor: '#fff', padding: 20, paddingTop: 60 },
+  orangeCard: { backgroundColor: '#FF4500', borderRadius: 25, padding: 25, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  statsLabel: { color: '#fff', fontSize: 14 },
+  statsNum: { color: '#fff', fontSize: 32, fontWeight: 'bold' },
+  circle: { width: 60, height: 60, borderRadius: 30, borderWidth: 4, borderColor: 'rgba(255,255,255,0.3)', justifyContent: 'center', alignItems: 'center' },
+  percentText: { color: '#fff', fontWeight: 'bold' },
+  card: { borderRadius: 20, backgroundColor: '#fff', marginBottom: 15, elevation: 3, overflow: 'hidden', borderWidth: 1, borderColor: '#eee' },
+  cardImg: { width: '100%', height: 120 },
+  cardBody: { padding: 15 },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  resName: { fontSize: 18, fontWeight: 'bold' },
+  audioBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff0eb', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10 },
+  audioText: { color: '#FF4500', fontSize: 10, fontWeight: 'bold', marginLeft: 4 },
+  date: { color: '#FF4500', fontSize: 12, marginVertical: 5 },
+  notes: { color: '#666', fontSize: 14, marginBottom: 10 },
+  playButtonDisabled: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f5f5f5', padding: 8, borderRadius: 10, marginTop: 5 },
+  playTextDisabled: { color: '#bbb', fontSize: 12, marginLeft: 8 },
 });

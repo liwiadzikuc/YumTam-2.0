@@ -65,7 +65,7 @@ export default function FilterModal({
             <View style={styles.divider} />
 
             <View style={styles.row}>
-              <Text style={styles.optionText}>Tanie piwo (do 10zł) 🍺</Text>
+              <Text style={styles.optionText}>Tanie piwo (do 10zł) </Text>
               <Switch 
                 value={isCheapBeer} 
                 onValueChange={setIsCheapBeer}
@@ -76,7 +76,7 @@ export default function FilterModal({
             </View>
 
             <View style={styles.row}>
-              <Text style={styles.optionText}>Oferta Lunchowa 🥗</Text>
+              <Text style={styles.optionText}>Oferta Lunchowa </Text>
               <Switch 
                 value={hasLunch} 
                 onValueChange={setHasLunch}

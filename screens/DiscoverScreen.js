@@ -1,148 +1,88 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
-import { useContext, useEffect, useRef, useState } from 'react';
-import { Alert, Keyboard, StyleSheet, TouchableOpacity, View } from 'react-native';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import * as SQLite from 'expo-sqlite';
+import { useCallback, useRef, useState } from 'react';
+import { Keyboard, StyleSheet, TouchableOpacity, View } from 'react-native';
+import MapView, { Marker } from 'react-native-maps';
 
 import DiscoverHeader from '../components/DiscoverHeader';
 import FilterModal from '../components/FilterModal';
 import RestaurantCard from '../components/RestaurantCard';
-import { VisitsContext } from '../context/VisitsContext';
-import { restaurants } from '../data/restaurants';
 
 const CENTER_LAT = 51.1100;
 const CENTER_LNG = 17.0325;
-const MAX_DELTA = 0.02; 
-
-const HIDE_POI_STYLE = [
-  { "featureType": "poi.business", "stylers": [{ "visibility": "off" }] },
-  { "featureType": "poi.medical", "stylers": [{ "visibility": "off" }] },
-  { "featureType": "poi.school", "stylers": [{ "visibility": "off" }] }
-];
 
 export default function DiscoverScreen({ navigation }) {
+  const [dbRestaurants, setDbRestaurants] = useState([]);
+  const [visitedIds, setVisitedIds] = useState([]);
   const [searchText, setSearchText] = useState('');
-  
-  const { visits, favorites } = useContext(VisitsContext);
-  const visitedRestaurantIds = visits.map(v => v.restaurantId).filter(id => id !== null);
-
-  const [selectedCategories, setSelectedCategories] = useState([]); 
-  const [isCheapBeer, setIsCheapBeer] = useState(false);
-  const [hasLunch, setHasLunch] = useState(false);
-  
-  const [modalVisible, setModalVisible] = useState(false); 
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [modalVisible, setModalVisible] = useState(false);
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
-  
   const mapRef = useRef(null);
 
-  const resetFilters = () => {
-    setSelectedCategories([]);
-    setIsCheapBeer(false);
-    setHasLunch(false);
+  const loadMarkers = async () => {
+    try {
+      const db = await SQLite.openDatabaseAsync('yumtam.db');
+      const restaurants = await db.getAllAsync('SELECT * FROM Restaurants');
+      setDbRestaurants(restaurants);
+
+      const visits = await db.getAllAsync('SELECT DISTINCT restaurant_id FROM Visits');
+      setVisitedIds(visits.map(v => v.restaurant_id));
+    } catch (error) {
+      console.error("Błąd ładowania mapy:", error);
+    }
   };
 
-  const getBeerPrice = (restaurant) => {
-    if (!restaurant.menu) return 999;
-    const beerItem = restaurant.menu.find(m => {
-        const name = m.name.toLowerCase();
-        return name.includes('piwo') || name.includes('cerveza') || name.includes('lager');
-    });
-    return beerItem ? beerItem.price : 999;
-  };
+  useFocusEffect(useCallback(() => { loadMarkers(); }, []));
 
-  const displayedRestaurants = restaurants.filter(item => {
+  const displayedRestaurants = dbRestaurants.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchText.toLowerCase());
-    const matchesCategory = selectedCategories.length === 0 || selectedCategories.some(cat => item.cuisine.includes(cat));
-    
-    const currentBeerPrice = getBeerPrice(item);
-    const matchesBeer = !isCheapBeer || currentBeerPrice <= 10;
-    
-    const matchesLunch = !hasLunch || item.hasLunch;
-    
-    return matchesSearch && matchesCategory && matchesBeer && matchesLunch;
+    const matchesCategory = selectedCategories.length === 0 || 
+                           (item.cuisine && selectedCategories.some(cat => item.cuisine.includes(cat)));
+    return matchesSearch && matchesCategory;
   });
 
   const handleRandomize = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); 
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    if (displayedRestaurants.length === 0) return;
 
-    if (displayedRestaurants.length === 0) {
-        Alert.alert("Ups!", "Brak restauracji spełniających te kryteria.");
-        return;
-    }
-
-    const unvisited = displayedRestaurants.filter(r => !visitedRestaurantIds.includes(r.id));
-    
+    const unvisited = displayedRestaurants.filter(r => !visitedIds.includes(r.id));
     const pool = unvisited.length > 0 ? unvisited : displayedRestaurants;
-
-    const randomIndex = Math.floor(Math.random() * pool.length);
-    const randomPlace = pool[randomIndex];
+    const randomPlace = pool[Math.floor(Math.random() * pool.length)];
 
     setSelectedRestaurant(randomPlace);
     mapRef.current?.animateToRegion({
-      latitude: randomPlace.coordinates.latitude,
-      longitude: randomPlace.coordinates.longitude,
+      latitude: randomPlace.latitude,
+      longitude: randomPlace.longitude,
       latitudeDelta: 0.005, longitudeDelta: 0.005,
     }, 1000);
   };
 
-  const activeFiltersCount = selectedCategories.length + (isCheapBeer ? 1 : 0) + (hasLunch ? 1 : 0);
-
-  useEffect(() => {
-    if (selectedRestaurant) {
-      const isVisible = displayedRestaurants.find(r => r.id === selectedRestaurant.id);
-      if (!isVisible) setSelectedRestaurant(null);
-    }
-  }, [displayedRestaurants]);
-
-  const handleRegionChangeComplete = (region) => {
-    const latDiff = Math.abs(region.latitude - CENTER_LAT);
-    const lngDiff = Math.abs(region.longitude - CENTER_LNG);
-
-    if (latDiff > MAX_DELTA * 1.5 || lngDiff > MAX_DELTA * 1.5) {
-      mapRef.current?.animateToRegion({
-        latitude: CENTER_LAT,
-        longitude: CENTER_LNG,
-        latitudeDelta: 0.02,
-        longitudeDelta: 0.02,
-      }, 500); 
-    }
-  };
-
-  const markersKey = `${isCheapBeer}-${hasLunch}-${selectedCategories.join(',')}-${searchText}-${favorites.length}`;
-
   return (
     <View style={styles.container}>
-      <MapView 
+      <MapView
         ref={mapRef}
         style={styles.map}
-        provider={PROVIDER_GOOGLE}
-        customMapStyle={HIDE_POI_STYLE} 
-        showsPointsOfInterest={false}
-        onRegionChangeComplete={handleRegionChangeComplete} 
-        onPress={() => { setSelectedRestaurant(null); Keyboard.dismiss(); }} 
         initialRegion={{
           latitude: CENTER_LAT, longitude: CENTER_LNG,
           latitudeDelta: 0.02, longitudeDelta: 0.02,
         }}
-        minZoomLevel={13} maxZoomLevel={20} moveOnMarkerPress={false} 
+        onPress={() => { setSelectedRestaurant(null); Keyboard.dismiss(); }}
       >
         {displayedRestaurants.map((marker) => {
-          
-          const isVisited = visitedRestaurantIds.includes(marker.id);
-          const isFavorite = favorites.includes(marker.id);
+          const isVisited = visitedIds.includes(marker.id);
+          const isFavorite = marker.is_favorite === 1;
 
           let pinColor = "#FF5722"; 
-          
-          if (isVisited) {
-            pinColor = "#4CAF50"; 
-          } else if (isFavorite) {
-            pinColor = "#2196F3"; 
-          }
+          if (isVisited) pinColor = "#4CAF50"; 
+          else if (isFavorite) pinColor = "#2196F3"; 
 
           return (
             <Marker
-              key={`${marker.id}-${markersKey}`} 
-              coordinate={marker.coordinates}
+              key={marker.id}
+              coordinate={{ latitude: marker.latitude, longitude: marker.longitude }}
               onPress={(e) => { e.stopPropagation(); setSelectedRestaurant(marker); }}
               pinColor={pinColor}
             />
@@ -151,10 +91,9 @@ export default function DiscoverScreen({ navigation }) {
       </MapView>
 
       <DiscoverHeader 
-        searchText={searchText}
-        setSearchText={setSearchText}
+        searchText={searchText} setSearchText={setSearchText}
         onOpenFilters={() => setModalVisible(true)}
-        activeFiltersCount={activeFiltersCount}
+        activeFiltersCount={selectedCategories.length}
       />
 
       <TouchableOpacity style={styles.diceButton} onPress={handleRandomize}>
@@ -162,23 +101,18 @@ export default function DiscoverScreen({ navigation }) {
       </TouchableOpacity>
 
       <FilterModal 
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        selectedCategories={selectedCategories}
-        setSelectedCategories={setSelectedCategories}
-        isCheapBeer={isCheapBeer}
-        setIsCheapBeer={setIsCheapBeer}
-        hasLunch={hasLunch}
-        setHasLunch={setHasLunch}
-        onReset={resetFilters} 
+        visible={modalVisible} onClose={() => setModalVisible(false)}
+        selectedCategories={selectedCategories} setSelectedCategories={setSelectedCategories}
+        onReset={() => setSelectedCategories([])}
       />
 
       <RestaurantCard 
         restaurant={selectedRestaurant}
         onClose={() => setSelectedRestaurant(null)}
         onDetails={() => {
-          setSelectedRestaurant(null); 
-          navigation.navigate('RestaurantDetails', { restaurant: selectedRestaurant });
+          const res = selectedRestaurant;
+          setSelectedRestaurant(null);
+          navigation.navigate('RestaurantDetails', { restaurant: res });
         }}
       />
     </View>
@@ -186,24 +120,11 @@ export default function DiscoverScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1 },
   map: { width: '100%', height: '100%' },
-  
   diceButton: {
-    position: 'absolute',
-    top: 170, 
-    right: 20,
-    backgroundColor: '#FF4500', 
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4.65,
-    elevation: 8,
-    zIndex: 10,
+    position: 'absolute', top: 170, right: 20,
+    backgroundColor: '#FF4500', width: 56, height: 56, borderRadius: 28,
+    justifyContent: 'center', alignItems: 'center', elevation: 8
   }
 });

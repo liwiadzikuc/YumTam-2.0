@@ -1,147 +1,83 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useContext } from 'react';
-import { Image, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { VisitsContext } from '../context/VisitsContext';
+import * as Haptics from 'expo-haptics';
+import * as SQLite from 'expo-sqlite';
+import { useEffect, useState } from 'react';
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function RestaurantDetailsScreen({ route, navigation }) {
   const { restaurant } = route.params;
-  
-  const { favorites, toggleFavorite } = useContext(VisitsContext);
-  
-  const isFavorite = favorites.includes(restaurant.id);
+  const [isFav, setIsFav] = useState(restaurant.is_favorite === 1);
+  const [history, setHistory] = useState([]);
 
-  const handleAddVisit = () => {
-    navigation.navigate('AddVisit', { restaurant: restaurant });
+  useEffect(() => {
+    loadHistory();
+  }, []);
+
+  const loadHistory = async () => {
+    const db = await SQLite.openDatabaseAsync('yumtam.db');
+    const data = await db.getAllAsync('SELECT * FROM Visits WHERE restaurant_id = ? ORDER BY id DESC', [restaurant.id]);
+    setHistory(data);
   };
 
-  const openGoogleMaps = () => {
-    if (restaurant.googleMapsUrl) Linking.openURL(restaurant.googleMapsUrl);
-    else alert("Brak linku do map w bazie.");
+  const toggleFavorite = async () => {
+    try {
+      const db = await SQLite.openDatabaseAsync('yumtam.db');
+      const newVal = isFav ? 0 : 1;
+      await db.runAsync('UPDATE Restaurants SET is_favorite = ? WHERE id = ?', [newVal, restaurant.id]);
+      setIsFav(!isFav);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch (e) { console.error(e); }
   };
-
-  const openInstagram = () => {
-    if (restaurant.instagramUrl) Linking.openURL(restaurant.instagramUrl);
-    else alert("Brak Instagrama w bazie.");
-  };
-
-  const cuisineText = Array.isArray(restaurant.cuisine) 
-    ? restaurant.cuisine.join(', ') 
-    : restaurant.cuisine;
 
   return (
-    <View style={{flex: 1}}>
-      <ScrollView style={styles.container}>
-        <Image source={{ uri: restaurant.image }} style={styles.headerImage} />
-        
-        <View style={styles.content}>
-          <View style={styles.headerRow}>
-            <View style={{flex: 1, flexDirection: 'row', alignItems: 'center'}}>
-              <Text style={styles.title}>{restaurant.name}</Text>
-              
-              <TouchableOpacity onPress={() => toggleFavorite(restaurant.id)}>
-                <Ionicons 
-                  name={isFavorite ? "heart" : "heart-outline"} 
-                  size={28} 
-                  color={isFavorite ? "#E91E63" : "#333"} 
-                  style={{marginLeft: 10}}
-                />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.ratingBadge}>
-              <Text style={styles.ratingText}>★ {restaurant.rating}</Text>
-            </View>
+    <ScrollView style={styles.container}>
+      <Image source={{ uri: restaurant.image_url || 'https://picsum.photos/400/200' }} style={styles.image} />
+      
+      <View style={styles.content}>
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.name}>{restaurant.name}</Text>
+            <Text style={styles.cuisine}>{restaurant.cuisine} • {restaurant.address}</Text>
           </View>
-          
-          <Text style={styles.cuisine}>{cuisineText} • {restaurant.address}</Text>
-          <Text style={styles.description}>{restaurant.description}</Text>
-
-          <View style={styles.separator} />
-
-          <Text style={styles.sectionTitle}>Menu</Text>
-          {restaurant.menu ? (
-            restaurant.menu.map((item, index) => (
-              <View key={index} style={styles.menuItem}>
-                <Text style={styles.menuName}>{item.name}</Text>
-                <Text style={styles.menuPrice}>{item.price} zł</Text>
-              </View>
-            ))
-          ) : (
-            <Text style={{color: 'gray', fontStyle: 'italic'}}>Brak menu w podglądzie.</Text>
-          )}
-
-          <View style={styles.separator} />
-
-          <Text style={styles.sectionTitle}>Opinie i Sociale</Text>
-          
-          <View style={styles.socialContainer}>
-            <Text style={styles.reviewLabel}>
-              Zobacz więcej zdjęć i opinii ({restaurant.reviewsCount}+):
-            </Text>
-
-            <TouchableOpacity style={styles.socialButton} onPress={openGoogleMaps}>
-              <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                <Ionicons name="logo-google" size={20} color="#4285F4" style={{ marginRight: 10 }} />
-                <Text style={styles.socialButtonText}>Opinie Google Maps</Text>
-              </View>
-              <Ionicons name="arrow-forward" size={16} color="#aaa" />
-            </TouchableOpacity>
-
-            <TouchableOpacity style={[styles.socialButton, { marginTop: 10 }]} onPress={openInstagram}>
-              <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                <Ionicons name="logo-instagram" size={20} color="#C13584" style={{ marginRight: 10 }} />
-                <Text style={styles.socialButtonText}>Profil na Instagramie</Text>
-              </View>
-              <Ionicons name="arrow-forward" size={16} color="#aaa" />
-            </TouchableOpacity>
-          </View>
-
-          <View style={{height: 80}} />
+          <TouchableOpacity onPress={toggleFavorite}>
+            <Ionicons name={isFav ? "heart" : "heart-outline"} size={32} color="#FF4500" />
+          </TouchableOpacity>
         </View>
-      </ScrollView>
 
-      <View style={styles.footer}>
-        <TouchableOpacity style={styles.addButton} onPress={handleAddVisit}>
-          <Ionicons name="add-circle-outline" size={24} color="white" style={{marginRight: 8}} />
-          <Text style={styles.addButtonText}>Dodaj wizytę tutaj</Text>
+        <Text style={styles.description}>{restaurant.description}</Text>
+
+        <TouchableOpacity 
+          style={styles.addBtn} 
+          onPress={() => navigation.navigate('AddVisit', { restaurant })}
+        >
+          <Text style={styles.addBtnText}>Dodaj wspomnienie</Text>
         </TouchableOpacity>
+
+        <Text style={styles.subTitle}>Twoja historia tutaj:</Text>
+        {history.map(visit => (
+          <View key={visit.id} style={styles.historyItem}>
+            <Text style={styles.historyDate}>{visit.visit_date}</Text>
+            <Text>{'⭐'.repeat(visit.rating)}</Text>
+            <Text style={styles.historyNote}>{visit.notes}</Text>
+          </View>
+        ))}
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
-  headerImage: { width: '100%', height: 250 },
-  content: { padding: 20, borderTopLeftRadius: 25, borderTopRightRadius: 25, marginTop: -20, backgroundColor: '#fff' },
-  
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 },
-  title: { fontSize: 24, fontWeight: 'bold', flexShrink: 1 }, 
-  ratingBadge: { backgroundColor: '#FF4500', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12, marginLeft: 10 },
-  ratingText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
-  
-  cuisine: { color: 'gray', fontSize: 14, marginTop: 5, marginBottom: 10 },
-  description: { fontSize: 16, color: '#444', lineHeight: 22 },
-  
-  separator: { height: 1, backgroundColor: '#eee', marginVertical: 20 },
-  sectionTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 15 },
-  
-  menuItem: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: '#f9f9f9' },
-  menuName: { fontSize: 16, fontWeight: '500' },
-  menuPrice: { fontSize: 16, fontWeight: 'bold', color: '#FF4500' },
-  
-  socialContainer: { backgroundColor: '#f9f9f9', padding: 15, borderRadius: 12 },
-  reviewLabel: { color: '#555', marginBottom: 15 },
-  
-  socialButton: { 
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: 'white', padding: 12, borderRadius: 8, 
-    borderWidth: 1, borderColor: '#eee',
-    shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, elevation: 1,
-  },
-  socialButtonText: { fontWeight: '600', color: '#333' },
-
-  footer: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 20, backgroundColor: 'rgba(255,255,255,0.9)', borderTopWidth: 1, borderTopColor: '#eee' },
-  addButton: { backgroundColor: '#FF4500', paddingVertical: 15, borderRadius: 15, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', elevation: 5 },
-  addButtonText: { color: 'white', fontSize: 18, fontWeight: 'bold' },
+  image: { width: '100%', height: 250 },
+  content: { padding: 20 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
+  name: { fontSize: 24, fontWeight: 'bold' },
+  cuisine: { color: '#666', marginTop: 5 },
+  description: { fontSize: 16, lineHeight: 24, color: '#444', marginBottom: 20 },
+  addBtn: { backgroundColor: '#FF4500', padding: 15, borderRadius: 15, alignItems: 'center', marginBottom: 30 },
+  addBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
+  subTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 15 },
+  historyItem: { padding: 15, backgroundColor: '#f9f9f9', borderRadius: 12, marginBottom: 10, borderWidth: 1, borderColor: '#eee' },
+  historyDate: { fontWeight: 'bold', color: '#FF4500', marginBottom: 5 },
+  historyNote: { color: '#666', marginTop: 5 }
 });
