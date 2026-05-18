@@ -6,11 +6,12 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
 
-import { initDatabase } from './database'; // Importujemy Twoją bazę danych
+import { initDatabase } from './database';
 import AddVisitScreen from './screens/AddVisitScreen';
 import DiscoverScreen from './screens/DiscoverScreen';
 import JournalScreen from './screens/JournalScreen';
 import RestaurantDetailsScreen from './screens/RestaurantDetailsScreen';
+import VisitDetailsScreen from './screens/VisitDetailsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -38,7 +39,6 @@ export default function App() {
   const [dbReady, setDbReady] = useState(false);
 
   useEffect(() => {
-    // Inicjalizacja bazy danych przy starcie aplikacji
     initDatabase()
       .then(() => {
         console.log("Baza danych gotowa!");
@@ -60,8 +60,9 @@ export default function App() {
       <StatusBar style="dark" />
       <Stack.Navigator>
         <Stack.Screen name="HomeTabs" component={HomeTabs} options={{ headerShown: false }} />
-        <Stack.Screen name="AddVisit" component={AddVisitScreen} options={{ title: 'Dodaj wspomnienie' }} />
-        <Stack.Screen name="RestaurantDetails" component={RestaurantDetailsScreen} options={{ title: 'Szczegóły' }} />
+        <Stack.Screen name="AddVisit" component={AddVisitScreen} options={{ title: 'Dodaj wspomnienie', headerBackTitle: 'Wróć'}} />
+        <Stack.Screen name="RestaurantDetails" component={RestaurantDetailsScreen} options={{ title: 'Szczegóły', headerBackTitle: 'Wróć'}} />
+        <Stack.Screen name="VisitDetails" component={VisitDetailsScreen} options={{ title: 'Wspomnienie', headerBackTitle: 'Wróć' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

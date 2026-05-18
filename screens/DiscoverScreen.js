@@ -1,8 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
-import * as Haptics from 'expo-haptics';
-import * as SQLite from 'expo-sqlite';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef } from 'react';
 import { Keyboard, StyleSheet, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 
@@ -10,54 +8,30 @@ import DiscoverHeader from '../components/DiscoverHeader';
 import FilterModal from '../components/FilterModal';
 import RestaurantCard from '../components/RestaurantCard';
 
+import { useDiscoverViewModel } from '../viewmodels/useDiscoverViewModel';
+
 const CENTER_LAT = 51.1100;
 const CENTER_LNG = 17.0325;
 
 export default function DiscoverScreen({ navigation }) {
-  const [dbRestaurants, setDbRestaurants] = useState([]);
-  const [visitedIds, setVisitedIds] = useState([]);
-  const [searchText, setSearchText] = useState('');
-  const [selectedCategories, setSelectedCategories] = useState([]);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [selectedRestaurant, setSelectedRestaurant] = useState(null);
   const mapRef = useRef(null);
+  
+  const {
+    searchText, setSearchText, selectedCategories, setSelectedCategories,
+    isCheapBeer, setIsCheapBeer, hasLunch, setHasLunch, UNIQUE_CATEGORIES,
+    modalVisible, setModalVisible, selectedRestaurant, setSelectedRestaurant,
+    displayedRestaurants, visitedIds, loadInitialData, handleRandomize,
+    mapCenter 
+  } = useDiscoverViewModel();
 
-  const loadMarkers = async () => {
-    try {
-      const db = await SQLite.openDatabaseAsync('yumtam.db');
-      const restaurants = await db.getAllAsync('SELECT * FROM Restaurants');
-      setDbRestaurants(restaurants);
+  useFocusEffect(useCallback(() => { loadInitialData(); }, []));
 
-      const visits = await db.getAllAsync('SELECT DISTINCT restaurant_id FROM Visits');
-      setVisitedIds(visits.map(v => v.restaurant_id));
-    } catch (error) {
-      console.error("Błąd ładowania mapy:", error);
+  const handleRegionChangeComplete = (region) => {
+    const latDiff = Math.abs(region.latitude - mapCenter.latitude);
+    const lngDiff = Math.abs(region.longitude - mapCenter.longitude);
+    if (latDiff > 0.1 || lngDiff > 0.1) {
+      mapRef.current?.animateToRegion({ latitude: mapCenter.latitude, longitude: mapCenter.longitude, latitudeDelta: 0.02, longitudeDelta: 0.02 }, 1000); 
     }
-  };
-
-  useFocusEffect(useCallback(() => { loadMarkers(); }, []));
-
-  const displayedRestaurants = dbRestaurants.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchText.toLowerCase());
-    const matchesCategory = selectedCategories.length === 0 || 
-                           (item.cuisine && selectedCategories.some(cat => item.cuisine.includes(cat)));
-    return matchesSearch && matchesCategory;
-  });
-
-  const handleRandomize = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-    if (displayedRestaurants.length === 0) return;
-
-    const unvisited = displayedRestaurants.filter(r => !visitedIds.includes(r.id));
-    const pool = unvisited.length > 0 ? unvisited : displayedRestaurants;
-    const randomPlace = pool[Math.floor(Math.random() * pool.length)];
-
-    setSelectedRestaurant(randomPlace);
-    mapRef.current?.animateToRegion({
-      latitude: randomPlace.latitude,
-      longitude: randomPlace.longitude,
-      latitudeDelta: 0.005, longitudeDelta: 0.005,
-    }, 1000);
   };
 
   return (
@@ -65,56 +39,41 @@ export default function DiscoverScreen({ navigation }) {
       <MapView
         ref={mapRef}
         style={styles.map}
-        initialRegion={{
-          latitude: CENTER_LAT, longitude: CENTER_LNG,
-          latitudeDelta: 0.02, longitudeDelta: 0.02,
-        }}
+        initialRegion={{ latitude: mapCenter.latitude, longitude: mapCenter.longitude, latitudeDelta: 0.02, longitudeDelta: 0.02 }}
+        showsUserLocation={true} 
+        onRegionChangeComplete={handleRegionChangeComplete}
         onPress={() => { setSelectedRestaurant(null); Keyboard.dismiss(); }}
       >
         {displayedRestaurants.map((marker) => {
           const isVisited = visitedIds.includes(marker.id);
           const isFavorite = marker.is_favorite === 1;
-
-          let pinColor = "#FF5722"; 
-          if (isVisited) pinColor = "#4CAF50"; 
-          else if (isFavorite) pinColor = "#2196F3"; 
-
+          let pinColor = isVisited ? "#4CAF50" : (isFavorite ? "#2196F3" : "#FF5722"); 
           return (
-            <Marker
-              key={marker.id}
-              coordinate={{ latitude: marker.latitude, longitude: marker.longitude }}
-              onPress={(e) => { e.stopPropagation(); setSelectedRestaurant(marker); }}
-              pinColor={pinColor}
-            />
+            <Marker key={marker.id} pinColor={pinColor} coordinate={{ latitude: marker.latitude, longitude: marker.longitude }} onPress={(e) => { e.stopPropagation(); setSelectedRestaurant(marker); }} />
           );
         })}
       </MapView>
 
-      <DiscoverHeader 
-        searchText={searchText} setSearchText={setSearchText}
-        onOpenFilters={() => setModalVisible(true)}
-        activeFiltersCount={selectedCategories.length}
-      />
+      <DiscoverHeader searchText={searchText} setSearchText={setSearchText} onOpenFilters={() => setModalVisible(true)} activeFiltersCount={selectedCategories.length} />
 
-      <TouchableOpacity style={styles.diceButton} onPress={handleRandomize}>
+      <TouchableOpacity style={styles.diceButton} onPress={() => handleRandomize(mapRef)}>
         <Ionicons name="dice-outline" size={32} color="white" />
       </TouchableOpacity>
 
       <FilterModal 
-        visible={modalVisible} onClose={() => setModalVisible(false)}
+        visible={modalVisible} 
+        onClose={() => setModalVisible(false)}
+        availableCategories={UNIQUE_CATEGORIES}
         selectedCategories={selectedCategories} setSelectedCategories={setSelectedCategories}
-        onReset={() => setSelectedCategories([])}
-      />
-
-      <RestaurantCard 
-        restaurant={selectedRestaurant}
-        onClose={() => setSelectedRestaurant(null)}
-        onDetails={() => {
-          const res = selectedRestaurant;
-          setSelectedRestaurant(null);
-          navigation.navigate('RestaurantDetails', { restaurant: res });
+        isCheapBeer={isCheapBeer} setIsCheapBeer={setIsCheapBeer}
+        hasLunch={hasLunch} setHasLunch={setHasLunch}
+        onReset={() => {
+          setSelectedCategories([]);
+          setIsCheapBeer(false);
+          setHasLunch(false);
         }}
       />
+      <RestaurantCard restaurant={selectedRestaurant} onClose={() => setSelectedRestaurant(null)} onDetails={() => { const res = selectedRestaurant; setSelectedRestaurant(null); navigation.navigate('RestaurantDetails', { restaurant: res }); }} />
     </View>
   );
 }

@@ -44,7 +44,7 @@ export const restaurants = [
   {
     id: '3',
     name: 'Pasibus',
-    cuisine: ['Burgery', 'Mexican'],
+    cuisine: ['Burgery', 'Amerykańska'],
     rating: 4.5,
     reviewsCount: 10000,
     address: 'Świdnicka 11, Wrocław',
@@ -65,7 +65,7 @@ export const restaurants = [
   {
     id: '4',
     name: 'Przedwojenna',
-    cuisine: ['Bar', 'Tatar', 'Japanese'],
+    cuisine: ['Bar', 'Tatar', 'Polska'],
     rating: 4.6,
     reviewsCount: 5500,
     address: 'Św. Mikołaja 81, Wrocław',

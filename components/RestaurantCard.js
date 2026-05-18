@@ -13,7 +13,7 @@ export default function RestaurantCard({ restaurant, onClose, onDetails }) {
   return (
     <View style={styles.container}>
       
-      <Image source={{ uri: restaurant.image }} style={styles.image} />
+      <Image source={{ uri: restaurant.image_url || 'https://picsum.photos/400/200' }} style={styles.image} />
 
       <View style={styles.content}>
         
