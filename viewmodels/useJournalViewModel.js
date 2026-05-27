@@ -5,14 +5,12 @@ export function useJournalViewModel() {
   const [visits, setVisits] = useState([]);
   const [stats, setStats] = useState({ total: 0, discovered: 0, percent: 0 });
   
-  // NOWE: Zmienna sterująca sortowaniem (domyślnie: od najnowszych)
-  const [sortBy, setSortBy] = useState('newest'); // Możliwe wartości: 'newest', 'rating', 'alpha'
+  const [sortBy, setSortBy] = useState('newest'); 
 
   const loadData = async () => {
     try {
       const db = await SQLite.openDatabaseAsync('yumtam.db');
       
-      // Wyciągamy wizyty bez wymuszania ORDER BY w SQL, posortujemy je za chwilę dynamicznie w kodzie
       const vData = await db.getAllAsync(`
         SELECT 
           V.*, 
@@ -32,11 +30,10 @@ export function useJournalViewModel() {
     } catch (error) { console.error(error); }
   };
 
-  // NOWA LOGIKA: Dynamiczne sortowanie danych
   const displayedVisits = [...visits].sort((a, b) => {
-    if (sortBy === 'newest') return b.id - a.id; // Najwyższe ID = najnowsze
-    if (sortBy === 'rating') return b.rating - a.rating; // Najwięcej gwiazdek na górze
-    if (sortBy === 'alpha') return a.resName.localeCompare(b.resName); // Alfabetycznie po nazwie A-Z
+    if (sortBy === 'newest') return b.id - a.id; 
+    if (sortBy === 'rating') return b.rating - a.rating; 
+    if (sortBy === 'alpha') return a.resName.localeCompare(b.resName); 
     return 0;
   });
 

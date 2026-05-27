@@ -1,4 +1,5 @@
 import { Audio } from 'expo-av';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as ImagePicker from 'expo-image-picker';
 import * as SQLite from 'expo-sqlite';
 import { useEffect, useState } from 'react';
@@ -6,28 +7,25 @@ import { Alert } from 'react-native';
 
 export function useAddVisitViewModel(restaurant, navigation) {
   const [note, setNote] = useState('');
-  const [rating, setRating] = useState(0); // Domyślnie 0 gwiazdek
-  const [images, setImages] = useState([]); // TABLICA ZDJĘĆ
+  const [rating, setRating] = useState(0); 
+  const [images, setImages] = useState([]); 
   
-  // Stany do audio
   const [recording, setRecording] = useState(null);
   const [audioUri, setAudioUri] = useState(null);
   const [sound, setSound] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // Sprzątanie pamięci po dźwięku, żeby nie grał w tle po wyjściu z ekranu
   useEffect(() => {
     return sound ? () => { sound.unloadAsync(); } : undefined;
   }, [sound]);
 
   const pickImage = async () => {
-    // JAWNE PYTANIE O GALERIĘ (Dla prowadzącego)
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') return Alert.alert('Błąd', 'Brak dostępu do galerii zdjęć.');
 
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsMultipleSelection: true, // POZWALAMY NA WIELE ZDJĘĆ
+      allowsMultipleSelection: true, 
       quality: 0.7,
     });
     if (!result.canceled) {
@@ -64,7 +62,7 @@ export function useAddVisitViewModel(restaurant, navigation) {
   const stopRecording = async () => {
     setRecording(undefined);
     await recording.stopAndUnloadAsync();
-    setAudioUri(recording.getURI()); // Zapisujemy ścieżkę do odtworzenia
+    setAudioUri(recording.getURI()); 
   };
 
   const removeAudio = () => {
@@ -97,14 +95,22 @@ export function useAddVisitViewModel(restaurant, navigation) {
       );
       const newVisitId = result.lastInsertRowId;
 
-      // Zapisujemy WSZYSTKIE dodane zdjęcia (pętla)
       for (const imgUri of images) {
-        await db.runAsync('INSERT INTO MediaItems (visit_id, media_type, file_path) VALUES (?, ?, ?)', [newVisitId, 'image', imgUri]);
+        const filename = imgUri.split('/').pop(); 
+        const permanentUri = `${FileSystem.documentDirectory}${filename}`; 
+        
+        await FileSystem.copyAsync({ from: imgUri, to: permanentUri });
+        
+        await db.runAsync('INSERT INTO MediaItems (visit_id, media_type, file_path) VALUES (?, ?, ?)', [newVisitId, 'image', permanentUri]);
       }
 
-      // Zapisujemy audio
       if (audioUri) {
-        await db.runAsync('INSERT INTO MediaItems (visit_id, media_type, file_path) VALUES (?, ?, ?)', [newVisitId, 'audio', audioUri]);
+        const filename = audioUri.split('/').pop(); 
+        const permanentUri = `${FileSystem.documentDirectory}${filename}`;
+        
+        await FileSystem.copyAsync({ from: audioUri, to: permanentUri });
+        
+        await db.runAsync('INSERT INTO MediaItems (visit_id, media_type, file_path) VALUES (?, ?, ?)', [newVisitId, 'audio', permanentUri]);
       }
 
       Alert.alert("Sukces", "Wspomnienie zapisane!");
@@ -114,7 +120,7 @@ export function useAddVisitViewModel(restaurant, navigation) {
       Alert.alert("Błąd", "Zapis nieudany.");
     }
   };
-
+  
   return {
     note, setNote, rating, setRating, 
     images, removeImage, pickImage, takePhoto, 

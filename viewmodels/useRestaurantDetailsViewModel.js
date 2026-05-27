@@ -27,12 +27,10 @@ export function useRestaurantDetailsViewModel(restaurant) {
     setMenu(menuData);
   };
 
-  // Automatycznie ładujemy dane po wejściu na ekran
   useEffect(() => {
     loadData();
   }, []);
 
-  // BRAKUJĄCA FUNKCJA - Dodawanie do ulubionych (serduszko)
   const toggleFavorite = async () => {
     try {
       const db = await SQLite.openDatabaseAsync('yumtam.db');

@@ -9,7 +9,13 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
+      "infoPlist": {
+        "UIFileSharingEnabled": true,
+        "LSSupportsOpeningDocumentsInPlace": true
+      },
+      "bundleIdentifier": "com.mleczako.yumtam",
       "supportsTablet": true
+      
     },
     "android": {
       "adaptiveIcon": {

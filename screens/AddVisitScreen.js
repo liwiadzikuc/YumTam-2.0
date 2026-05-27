@@ -33,7 +33,6 @@ export default function AddVisitScreen({ route, navigation }) {
         })}
       </View>
       
-      {/* Pokazujemy tekst tylko, jeśli użytkownik jeszcze nie ocenił */}
       {rating === 0 && <Text style={styles.ratingText}>Wymagana ocena</Text>}
       {rating > 0 && <View style={{ height: 20, marginBottom: 25 }} />}
 

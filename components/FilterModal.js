@@ -3,7 +3,7 @@ import { Modal, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } f
 
 export default function FilterModal({ 
   visible, onClose, 
-  availableCategories, // NOWY PROP: Dostajemy kategorie z bazy od ViewModelu
+  availableCategories, 
   selectedCategories, setSelectedCategories,
   isCheapBeer, setIsCheapBeer,
   hasLunch, setHasLunch,
@@ -34,7 +34,6 @@ export default function FilterModal({
           <ScrollView showsVerticalScrollIndicator={false}>
             <Text style={styles.sectionTitle}>Kuchnie dostępne na mapie:</Text>
             <View style={styles.chipsContainer}>
-              {/* ITERUJEMY PO BAZIE, A NIE PO PLIKU */}
               {availableCategories.map((cat, index) => {
                 const isSelected = selectedCategories.includes(cat);
                 return (
@@ -55,7 +54,7 @@ export default function FilterModal({
               <Text style={styles.optionText}>Tanie piwo (do 10zł) </Text>
               <Switch 
                 value={isCheapBeer} 
-                onValueChange={setIsCheapBeer} // TO TERAZ ZADZIAŁA
+                onValueChange={setIsCheapBeer} 
                 trackColor={{ false: "#767577", true: "#FF4500" }}
                 thumbColor={"#f4f3f4"}
               />
@@ -65,7 +64,7 @@ export default function FilterModal({
               <Text style={styles.optionText}>Oferta Lunchowa </Text>
               <Switch 
                 value={hasLunch} 
-                onValueChange={setHasLunch} // TO TERAZ ZADZIAŁA
+                onValueChange={setHasLunch} 
                 trackColor={{ false: "#767577", true: "#FF4500" }}
                 thumbColor={"#f4f3f4"}
               />
