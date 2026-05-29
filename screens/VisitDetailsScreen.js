@@ -10,8 +10,7 @@ const { width, height } = Dimensions.get('window');
 
 export default function VisitDetailsScreen({ route, navigation }) {
   const { visit, restaurantName } = route.params;
-  const { images, audioUri, isPlaying, playAudio, handleDelete, handleShare } = useVisitDetailsViewModel(visit, navigation);
-
+  const { images, audioUri, isPlaying, playAudio, handleDelete, handleShare, companionsList } = useVisitDetailsViewModel(visit, navigation);
   const [activeImage, setActiveImage] = useState(null);
 
   return (
@@ -19,6 +18,11 @@ export default function VisitDetailsScreen({ route, navigation }) {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
         <Text style={styles.header}>{restaurantName}</Text>
         <Text style={styles.date}>{visit.visit_date}</Text>
+        {companionsList ? (
+        <Text style={{ textAlign: 'center', color: '#FF4500', fontWeight: 'bold', marginBottom: 15 }}>
+          W towarzystwie: {companionsList}
+        </Text>
+      ) : null}
 
         <View style={styles.ratingBox}>
           <StarRating rating={visit.rating} size={28} />

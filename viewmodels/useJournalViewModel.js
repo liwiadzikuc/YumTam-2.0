@@ -1,45 +1,57 @@
-import * as SQLite from 'expo-sqlite';
 import { useState } from 'react';
+import { RestaurantModel } from '../models/RestaurantModel';
+import { VisitModel } from '../models/VisitModel';
 
 export function useJournalViewModel() {
   const [visits, setVisits] = useState([]);
   const [stats, setStats] = useState({ total: 0, discovered: 0, percent: 0 });
-  
   const [sortBy, setSortBy] = useState('newest'); 
+  
+  const [selectedCompanionsFilter, setSelectedCompanionsFilter] = useState([]);
 
   const loadData = async () => {
     try {
-      const db = await SQLite.openDatabaseAsync('yumtam.db');
-      
-      const vData = await db.getAllAsync(`
-        SELECT 
-          V.*, 
-          R.name as resName, 
-          (SELECT file_path FROM MediaItems WHERE visit_id = V.id AND media_type = 'image' LIMIT 1) as img,
-          (SELECT file_path FROM MediaItems WHERE visit_id = V.id AND media_type = 'audio' LIMIT 1) as audioPath
-        FROM Visits V 
-        JOIN Restaurants R ON V.restaurant_id = R.id 
-        GROUP BY V.id
-      `);
+      const vData = await VisitModel.getAllWithMedia();
       setVisits(vData);
 
-      const totalRes = await db.getFirstAsync('SELECT COUNT(*) as c FROM Restaurants');
-      const discRes = await db.getFirstAsync('SELECT COUNT(DISTINCT restaurant_id) as c FROM Visits');
-      const p = totalRes.c > 0 ? Math.round((discRes.c / totalRes.c) * 100) : 0;
-      setStats({ total: totalRes.c, discovered: discRes.c, percent: p });
-    } catch (error) { console.error(error); }
+      const newStats = await RestaurantModel.getStats();
+      setStats(newStats);
+    } catch (error) { 
+      console.error(error); 
+    }
   };
 
-  const displayedVisits = [...visits].sort((a, b) => {
-    if (sortBy === 'newest') return b.id - a.id; 
-    if (sortBy === 'rating') return b.rating - a.rating; 
-    if (sortBy === 'alpha') return a.resName.localeCompare(b.resName); 
-    return 0;
-  });
+  const availableCompanions = [...new Set(
+    visits
+      .map(v => v.companions)
+      .filter(Boolean) 
+      .flatMap(c => c.split(', '))
+  )].sort();
+
+  const toggleCompanionFilter = (comp) => {
+    setSelectedCompanionsFilter(prev => 
+      prev.includes(comp) ? prev.filter(c => c !== comp) : [...prev, comp]
+    );
+  };
+
+  const displayedVisits = [...visits]
+    .filter(v => {
+      if (selectedCompanionsFilter.length === 0) return true;
+      if (!v.companions) return false;
+      
+      return selectedCompanionsFilter.every(filterComp => v.companions.includes(filterComp));
+    })
+    .sort((a, b) => {
+      if (sortBy === 'newest') return b.id - a.id; 
+      if (sortBy === 'rating') return b.rating - a.rating; 
+      if (sortBy === 'alpha') return a.resName.localeCompare(b.resName); 
+      return 0;
+    });
 
   return {
     stats, loadData,
-    sortBy, setSortBy, // Eksportujemy sortowanie do ekranu
-    displayedVisits
+    sortBy, setSortBy,
+    displayedVisits,
+    availableCompanions, selectedCompanionsFilter, toggleCompanionFilter
   };
 }

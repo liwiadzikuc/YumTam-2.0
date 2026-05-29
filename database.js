@@ -5,8 +5,8 @@ export async function initDatabase() {
   const db = await SQLite.openDatabaseAsync('yumtam.db');
   await db.execAsync('PRAGMA foreign_keys = ON;');
 
-  // ODKOMENTUJ TĘ LINIJĘ NA JEDNO URUCHOMIENIE
-  // await db.execAsync('DROP TABLE IF EXISTS MediaItems; DROP TABLE IF EXISTS Visit_Companion; DROP TABLE IF EXISTS Companions; DROP TABLE IF EXISTS Visits; DROP TABLE IF EXISTS MenuItems; DROP TABLE IF EXISTS Restaurant_Category; DROP TABLE IF EXISTS Categories; DROP TABLE IF EXISTS Restaurants;');
+  // reset bazy - odkomentuj
+  //await db.execAsync('DROP TABLE IF EXISTS MediaItems; DROP TABLE IF EXISTS Visit_Companion; DROP TABLE IF EXISTS Companions; DROP TABLE IF EXISTS Visits; DROP TABLE IF EXISTS MenuItems; DROP TABLE IF EXISTS Restaurant_Category; DROP TABLE IF EXISTS Categories; DROP TABLE IF EXISTS Restaurants;');
 
   await db.execAsync(`
     CREATE TABLE IF NOT EXISTS Restaurants (
@@ -35,8 +35,8 @@ export async function initDatabase() {
     CREATE TABLE IF NOT EXISTS Restaurant_Category (
         restaurant_id INTEGER,
         category_id INTEGER,
-        FOREIGN KEY(restaurant_id) REFERENCES Restaurants(id),
-        FOREIGN KEY(category_id) REFERENCES Categories(id),
+        FOREIGN KEY(restaurant_id) REFERENCES Restaurants(id) ON DELETE CASCADE,
+        FOREIGN KEY(category_id) REFERENCES Categories(id) ON DELETE CASCADE,
         PRIMARY KEY(restaurant_id, category_id)
     );
 
@@ -45,7 +45,7 @@ export async function initDatabase() {
         restaurant_id INTEGER,
         name TEXT NOT NULL,
         price REAL,
-        FOREIGN KEY(restaurant_id) REFERENCES Restaurants(id)
+        FOREIGN KEY(restaurant_id) REFERENCES Restaurants(id) ON DELETE CASCADE
     );
 
     CREATE TABLE IF NOT EXISTS Visits (
@@ -54,7 +54,7 @@ export async function initDatabase() {
         visit_date TEXT,
         rating INTEGER,
         notes TEXT,
-        FOREIGN KEY(restaurant_id) REFERENCES Restaurants(id)
+        FOREIGN KEY(restaurant_id) REFERENCES Restaurants(id) ON DELETE CASCADE
     );
 
     CREATE TABLE IF NOT EXISTS Companions (
@@ -65,8 +65,8 @@ export async function initDatabase() {
     CREATE TABLE IF NOT EXISTS Visit_Companion (
         visit_id INTEGER,
         companion_id INTEGER,
-        FOREIGN KEY(visit_id) REFERENCES Visits(id),
-        FOREIGN KEY(companion_id) REFERENCES Companions(id),
+        FOREIGN KEY(visit_id) REFERENCES Visits(id) ON DELETE CASCADE,
+        FOREIGN KEY(companion_id) REFERENCES Companions(id) ON DELETE CASCADE,
         PRIMARY KEY(visit_id, companion_id)
     );
 
@@ -81,7 +81,7 @@ export async function initDatabase() {
 
   const check = await db.getFirstAsync('SELECT COUNT(*) as count FROM Restaurants');
   if (check.count === 0) {
-    console.log("Ładowanie bazy z nowymi danymi (Menu, Linki, Oceny)...");
+    console.log("Ładowanie bazy z nowymi danymi (Kategorie relacyjne)...");
     
     for (const rest of restaurants) {
       const cheapBeer = rest.menu?.some(m => m.name.toLowerCase().includes('piwo') && m.price <= 10) ? 1 : 0;
@@ -92,12 +92,33 @@ export async function initDatabase() {
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           rest.name, rest.coordinates.latitude, rest.coordinates.longitude, rest.address, 
-          rest.cuisine.join(', '), rest.description, rest.image, hasLunch, cheapBeer, 
+          rest.cuisine.join(', '), // Zostawiamy to jako kopię zapasową / cache
+          rest.description, rest.image, hasLunch, cheapBeer, 
           rest.rating, rest.reviewsCount, rest.googleMapsUrl, rest.instagramUrl
         ]
       );
       
       const newRestaurantId = result.lastInsertRowId;
+
+      // DODAWANIE KATEGORII RELACYJNYCH
+      if (rest.cuisine && Array.isArray(rest.cuisine)) {
+        for (const catName of rest.cuisine) {
+          let catRecord = await db.getFirstAsync('SELECT id FROM Categories WHERE name = ?', [catName]);
+          let catId;
+          
+          if (!catRecord) {
+            const catInsert = await db.runAsync('INSERT INTO Categories (name) VALUES (?)', [catName]);
+            catId = catInsert.lastInsertRowId;
+          } else {
+            catId = catRecord.id;
+          }
+
+          await db.runAsync(
+            'INSERT INTO Restaurant_Category (restaurant_id, category_id) VALUES (?, ?)',
+            [newRestaurantId, catId]
+          );
+        }
+      }
 
       if (rest.menu) {
         for (const item of rest.menu) {
@@ -108,7 +129,7 @@ export async function initDatabase() {
         }
       }
     }
-    console.log("Baza załadowana pomyślnie!");
+    console.log("Baza załadowana pomyślnie z pełnymi relacjami!");
   }
   return db;
 }

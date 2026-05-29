@@ -1,7 +1,8 @@
 import * as Haptics from 'expo-haptics';
-import * as SQLite from 'expo-sqlite';
 import { useEffect, useState } from 'react';
 import { Linking } from 'react-native';
+import { RestaurantModel } from '../models/RestaurantModel';
+import { VisitModel } from '../models/VisitModel';
 
 export function useRestaurantDetailsViewModel(restaurant) {
   const [isFav, setIsFav] = useState(restaurant.is_favorite === 1);
@@ -9,21 +10,11 @@ export function useRestaurantDetailsViewModel(restaurant) {
   const [menu, setMenu] = useState([]);
 
   const loadData = async () => {
-    const db = await SQLite.openDatabaseAsync('yumtam.db');
-    
-    const historyData = await db.getAllAsync(`
-      SELECT V.*, 
-        (SELECT file_path FROM MediaItems WHERE visit_id = V.id AND media_type = 'image' LIMIT 1) as img,
-        (SELECT file_path FROM MediaItems WHERE visit_id = V.id AND media_type = 'audio' LIMIT 1) as audioPath
-      FROM Visits V 
-      WHERE V.restaurant_id = ? 
-      ORDER BY V.id DESC
-    `, [restaurant.id]);
-
+    const historyData = await VisitModel.getHistoryForRestaurant(restaurant.id);
     const enrichedHistory = historyData.map(v => ({ ...v, resName: restaurant.name }));
     setHistory(enrichedHistory);
 
-    const menuData = await db.getAllAsync('SELECT * FROM MenuItems WHERE restaurant_id = ?', [restaurant.id]);
+    const menuData = await RestaurantModel.getMenu(restaurant.id);
     setMenu(menuData);
   };
 
@@ -33,9 +24,7 @@ export function useRestaurantDetailsViewModel(restaurant) {
 
   const toggleFavorite = async () => {
     try {
-      const db = await SQLite.openDatabaseAsync('yumtam.db');
-      const newVal = isFav ? 0 : 1;
-      await db.runAsync('UPDATE Restaurants SET is_favorite = ? WHERE id = ?', [newVal, restaurant.id]);
+      await RestaurantModel.toggleFavorite(restaurant.id, isFav);
       setIsFav(!isFav);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (e) {

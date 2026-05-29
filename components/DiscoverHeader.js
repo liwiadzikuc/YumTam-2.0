@@ -1,7 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Platform, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { FlatList, Platform, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-export default function DiscoverHeader({ searchText, setSearchText, onOpenFilters, activeFiltersCount }) {
+export default function DiscoverHeader({ 
+  searchText, 
+  setSearchText, 
+  onOpenFilters, 
+  activeFiltersCount,
+  displayedRestaurants, 
+  onSelectRestaurant   
+}) {
   return (
     <View style={styles.topContainer}>
       
@@ -34,6 +41,31 @@ export default function DiscoverHeader({ searchText, setSearchText, onOpenFilter
         </TouchableOpacity>
       </View>
 
+
+      {searchText.trim().length > 0 && (
+        <View style={styles.searchResultsContainer}>
+          <FlatList
+            data={displayedRestaurants}
+            keyExtractor={(item) => item.id.toString()}
+            keyboardShouldPersistTaps="handled"
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.searchResultItem}
+                onPress={() => onSelectRestaurant(item)}
+              >
+                <Text style={styles.searchResultName}>{item.name}</Text>
+                <Text style={styles.searchResultAddress}>{item.address}</Text>
+              </TouchableOpacity>
+            )}
+            ListEmptyComponent={
+              <View style={styles.searchResultItem}>
+                <Text style={{ color: '#999', fontStyle: 'italic' }}>Brak wyników...</Text>
+              </View>
+            }
+          />
+        </View>
+      )}
+
     </View>
   );
 }
@@ -47,6 +79,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 20, borderBottomRightRadius: 20,
     elevation: 8, shadowColor: '#000', shadowOpacity: 0.15,
     shadowRadius: 10, shadowOffset: { width: 0, height: 5 },
+    zIndex: 100, 
   },
   appName: { fontSize: 24, fontWeight: '800', color: '#FF4500', marginBottom: 10 },
   
@@ -68,5 +101,27 @@ const styles = StyleSheet.create({
     width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center',
     borderWidth: 2, borderColor: 'white'
   },
-  badgeText: { color: 'white', fontSize: 10, fontWeight: 'bold' }
+  badgeText: { color: 'white', fontSize: 10, fontWeight: 'bold' },
+
+  searchResultsContainer: {
+    position: 'absolute',
+    top: Platform.OS === 'android' ? StatusBar.currentHeight + 115 : 145, 
+    left: 20,
+    right: 20,
+    backgroundColor: 'white',
+    borderRadius: 15,
+    maxHeight: 250,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  searchResultItem: {
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  searchResultName: { fontWeight: 'bold', fontSize: 15, color: '#333' },
+  searchResultAddress: { fontSize: 12, color: '#666', marginTop: 4 },
 });

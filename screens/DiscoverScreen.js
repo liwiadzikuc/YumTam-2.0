@@ -47,14 +47,53 @@ export default function DiscoverScreen({ navigation }) {
         {displayedRestaurants.map((marker) => {
           const isVisited = visitedIds.includes(marker.id);
           const isFavorite = marker.is_favorite === 1;
+          
           let pinColor = isVisited ? "#4CAF50" : (isFavorite ? "#2196F3" : "#FF5722"); 
+          
           return (
-            <Marker key={marker.id} pinColor={pinColor} coordinate={{ latitude: marker.latitude, longitude: marker.longitude }} onPress={(e) => { e.stopPropagation(); setSelectedRestaurant(marker); }} />
+            <Marker 
+              key={`marker-${marker.id}`} 
+              pinColor={pinColor} 
+              coordinate={{ 
+                latitude: parseFloat(marker.latitude), 
+                longitude: parseFloat(marker.longitude) 
+              }} 
+              onPress={(e) => { 
+                e.stopPropagation(); 
+                setSelectedRestaurant(marker); 
+                Keyboard.dismiss(); 
+                
+                mapRef.current?.animateToRegion({
+                  latitude: parseFloat(marker.latitude),
+                  longitude: parseFloat(marker.longitude),
+                  latitudeDelta: 0.005,
+                  longitudeDelta: 0.005
+                }, 500);
+              }} 
+            />
           );
         })}
       </MapView>
 
-      <DiscoverHeader searchText={searchText} setSearchText={setSearchText} onOpenFilters={() => setModalVisible(true)} activeFiltersCount={selectedCategories.length} />
+      <DiscoverHeader 
+        searchText={searchText} 
+        setSearchText={setSearchText} 
+        onOpenFilters={() => setModalVisible(true)} 
+        activeFiltersCount={selectedCategories.length} 
+        displayedRestaurants={displayedRestaurants}
+        onSelectRestaurant={(item) => {
+          Keyboard.dismiss(); 
+          setSearchText('');  
+          setSelectedRestaurant(item); 
+          
+          mapRef.current?.animateToRegion({
+            latitude: parseFloat(item.latitude),
+            longitude: parseFloat(item.longitude),
+            latitudeDelta: 0.005,
+            longitudeDelta: 0.005
+          }, 1000);
+        }}
+      />
 
       <TouchableOpacity style={styles.diceButton} onPress={() => handleRandomize(mapRef)}>
         <Ionicons name="dice-outline" size={32} color="white" />

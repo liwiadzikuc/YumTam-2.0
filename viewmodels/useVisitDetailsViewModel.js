@@ -1,8 +1,8 @@
 import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system/legacy';
-import * as SQLite from 'expo-sqlite';
 import { useEffect, useState } from 'react';
 import { Alert, Share } from 'react-native';
+import { VisitModel } from '../models/VisitModel';
 
 export function useVisitDetailsViewModel(visit, navigation) {
   const [images, setImages] = useState([]);
@@ -10,6 +10,7 @@ export function useVisitDetailsViewModel(visit, navigation) {
   
   const [sound, setSound] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [companionsList, setCompanionsList] = useState('');
 
   useEffect(() => {
     loadMedia();
@@ -17,19 +18,19 @@ export function useVisitDetailsViewModel(visit, navigation) {
   }, [sound]);
 
   const loadMedia = async () => {
-    const db = await SQLite.openDatabaseAsync('yumtam.db');
-    const media = await db.getAllAsync('SELECT * FROM MediaItems WHERE visit_id = ?', [visit.id]);
-    
+    const media = await VisitModel.getMediaForVisit(visit.id);
     setImages(media.filter(m => m.media_type === 'image').map(m => m.file_path));
     const audio = media.find(m => m.media_type === 'audio');
     if (audio) setAudioUri(audio.file_path);
+
+    const comps = await VisitModel.getCompanionsForVisit(visit.id);
+    setCompanionsList(comps);
   };
 
   const playAudio = async () => {
     if (!audioUri) return;
     try {
       await Audio.setAudioModeAsync({ playsInSilentModeIOS: true });
-      
       const { sound: newSound } = await Audio.Sound.createAsync({ uri: audioUri });
       setSound(newSound);
       setIsPlaying(true);
@@ -37,9 +38,7 @@ export function useVisitDetailsViewModel(visit, navigation) {
       newSound.setOnPlaybackStatusUpdate((status) => {
         if (status.didJustFinish) setIsPlaying(false);
       });
-    } catch (e) {
-      console.error("Błąd odtwarzania:", e);
-    }
+    } catch (e) { console.error("Błąd odtwarzania:", e); }
   };
 
   const handleShare = async (restaurantName) => {
@@ -47,9 +46,7 @@ export function useVisitDetailsViewModel(visit, navigation) {
       await Share.share({
         message: `Hej! Odkryłem super miejsce we Wrocławiu: ${restaurantName}. Dałem mu ${visit.rating} gwiazdek w moim kulinarnym dzienniku YumTam! Musimy tam iść! `,
       });
-    } catch (error) {
-      console.log('Błąd udostępniania:', error);
-    }
+    } catch (error) { console.log('Błąd udostępniania:', error); }
   };
 
   const handleDelete = () => {
@@ -57,15 +54,12 @@ export function useVisitDetailsViewModel(visit, navigation) {
       { text: "Anuluj", style: "cancel" },
       { text: "Usuń", style: "destructive", onPress: async () => {
           try {
-            const db = await SQLite.openDatabaseAsync('yumtam.db');
-            
-            const media = await db.getAllAsync('SELECT file_path FROM MediaItems WHERE visit_id = ?', [visit.id]);
-            
+            const media = await VisitModel.getMediaForVisit(visit.id);
             for (const item of media) {
               await FileSystem.deleteAsync(item.file_path, { idempotent: true });
             }
 
-            await db.runAsync('DELETE FROM Visits WHERE id = ?', [visit.id]);
+            await VisitModel.delete(visit.id);
             navigation.goBack(); 
           } catch (e) {
             console.error("Błąd podczas usuwania wspomnienia:", e);
@@ -74,5 +68,5 @@ export function useVisitDetailsViewModel(visit, navigation) {
     ]);
   };
 
-  return { images, audioUri, isPlaying, playAudio, handleShare, handleDelete };
+  return { images, audioUri, isPlaying, companionsList, setCompanionsList, playAudio, handleShare, handleDelete };
 }
