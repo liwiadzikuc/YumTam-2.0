@@ -4,10 +4,16 @@ import { Linking } from 'react-native';
 import { RestaurantModel } from '../models/RestaurantModel';
 import { VisitModel } from '../models/VisitModel';
 
+const RESTAURANT_VIDEOS = {
+  1: require('../assets/video/restaurant4k.mp4'), 
+};
+
 export function useRestaurantDetailsViewModel(restaurant) {
   const [isFav, setIsFav] = useState(restaurant.is_favorite === 1);
   const [history, setHistory] = useState([]);
   const [menu, setMenu] = useState([]);
+
+  const videoSource = RESTAURANT_VIDEOS[restaurant.id] || null;
 
   const loadData = async () => {
     const historyData = await VisitModel.getHistoryForRestaurant(restaurant.id);
@@ -36,5 +42,5 @@ export function useRestaurantDetailsViewModel(restaurant) {
     if (url) Linking.openURL(url);
   };
 
-  return { isFav, history, menu, toggleFavorite, openLink };
+  return { isFav, history, menu, videoSource, toggleFavorite, openLink }; 
 }

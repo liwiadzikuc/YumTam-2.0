@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useVideoPlayer, VideoView } from 'expo-video'; // <--- NOWY IMPORT
 import { useRef } from 'react';
 import { Animated, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -7,8 +8,14 @@ import { useRestaurantDetailsViewModel } from '../viewmodels/useRestaurantDetail
 
 export default function RestaurantDetailsScreen({ route, navigation }) {
   const { restaurant } = route.params;
-  const { isFav, history, menu, toggleFavorite, openLink } = useRestaurantDetailsViewModel(restaurant);
+  const { isFav, history, menu, videoSource, toggleFavorite, openLink } = useRestaurantDetailsViewModel(restaurant);
   const animatedScale = useRef(new Animated.Value(1)).current;
+
+  const player = useVideoPlayer(videoSource, player => {
+    player.loop = true;
+    player.muted = true;
+    player.play(); 
+  });
 
   const handleLikePress = () => {
     toggleFavorite(); 
@@ -34,8 +41,17 @@ export default function RestaurantDetailsScreen({ route, navigation }) {
   };
   return (
     <ScrollView style={styles.container}>
-      <Image source={{ uri: restaurant.image_url || 'https://picsum.photos/400/200' }} style={styles.image} />
-      
+      {videoSource ? (
+        <VideoView
+          style={styles.image}
+          player={player}
+          contentFit="cover"
+          nativeControls={false}
+        />
+      ) : (
+        <Image source={{ uri: restaurant.image_url || 'https://picsum.photos/400/200' }} style={styles.image} />
+      )}
+
       <View style={styles.content}>
         <View style={styles.header}>
           <View style={{ flex: 1 }}>

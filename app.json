@@ -15,7 +15,6 @@
       },
       "bundleIdentifier": "com.mleczako.yumtam",
       "supportsTablet": true
-      
     },
     "android": {
       "adaptiveIcon": {
@@ -45,7 +44,8 @@
           }
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      "expo-video"
     ],
     "experiments": {
       "typedRoutes": true,
