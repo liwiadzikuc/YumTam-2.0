@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useRef } from 'react';
+import { Animated, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import VisitCard from '../components/VisitCard';
 import { useRestaurantDetailsViewModel } from '../viewmodels/useRestaurantDetailsViewModel';
@@ -7,7 +8,30 @@ import { useRestaurantDetailsViewModel } from '../viewmodels/useRestaurantDetail
 export default function RestaurantDetailsScreen({ route, navigation }) {
   const { restaurant } = route.params;
   const { isFav, history, menu, toggleFavorite, openLink } = useRestaurantDetailsViewModel(restaurant);
+  const animatedScale = useRef(new Animated.Value(1)).current;
 
+  const handleLikePress = () => {
+    toggleFavorite(); 
+    animatedScale.setValue(1); 
+
+    Animated.sequence([
+      Animated.timing(animatedScale, {
+        toValue: 1.4, 
+        duration: 120,
+        useNativeDriver: true, 
+      }),
+      Animated.spring(animatedScale, {
+        toValue: 1, 
+        friction: 4, 
+        tension: 40,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
+  const animatedStyle = {
+    transform: [{ scale: animatedScale }],
+  };
   return (
     <ScrollView style={styles.container}>
       <Image source={{ uri: restaurant.image_url || 'https://picsum.photos/400/200' }} style={styles.image} />
@@ -24,8 +48,10 @@ export default function RestaurantDetailsScreen({ route, navigation }) {
 
             <Text style={styles.cuisine}>{restaurant.cuisine} • {restaurant.address}</Text>
           </View>
-          <TouchableOpacity onPress={toggleFavorite}>
-            <Ionicons name={isFav ? "heart" : "heart-outline"} size={32} color="#FF4500" />
+          <TouchableOpacity onPress={handleLikePress} activeOpacity={0.7}>
+            <Animated.View style={animatedStyle}>
+              <Ionicons name={isFav ? "heart" : "heart-outline"} size={35} color="#FF4500" />
+            </Animated.View>
           </TouchableOpacity>
         </View>
 
