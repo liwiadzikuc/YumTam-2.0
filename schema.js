@@ -6,7 +6,6 @@ export const restaurantsTable = sqliteTable('Restaurants', {
   latitude: real('latitude'),
   longitude: real('longitude'),
   address: text('address'),
-  cuisine: text('cuisine'),
   description: text('description'),
   image_url: text('image_url'),
   video_url: text('video_url'),

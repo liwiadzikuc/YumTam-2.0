@@ -8,7 +8,7 @@ export async function initDatabase() {
   const db = drizzle(sqlitedb);
 
   // reset bazy - odkomentuj
-  //await sqlitedb.execAsync('DROP TABLE IF EXISTS MediaItems; DROP TABLE IF EXISTS Visit_Companion; DROP TABLE IF EXISTS Companions; DROP TABLE IF EXISTS Visits; DROP TABLE IF EXISTS MenuItems; DROP TABLE IF EXISTS Restaurant_Category; DROP TABLE IF EXISTS Categories; DROP TABLE IF EXISTS Restaurants;');
+  await sqlitedb.execAsync('DROP TABLE IF EXISTS MediaItems; DROP TABLE IF EXISTS Visit_Companion; DROP TABLE IF EXISTS Companions; DROP TABLE IF EXISTS Visits; DROP TABLE IF EXISTS MenuItems; DROP TABLE IF EXISTS Restaurant_Category; DROP TABLE IF EXISTS Categories; DROP TABLE IF EXISTS Restaurants;');
 
   await sqlitedb.execAsync(`
     CREATE TABLE IF NOT EXISTS Restaurants (
@@ -17,7 +17,6 @@ export async function initDatabase() {
         latitude REAL,
         longitude REAL,
         address TEXT,
-        cuisine TEXT,
         description TEXT,
         image_url TEXT,
         video_url TEXT,
@@ -85,18 +84,16 @@ export async function initDatabase() {
   const check = await sqlitedb.getFirstAsync('SELECT COUNT(*) as count FROM Restaurants');
   
   if (check.count === 0) {
-    console.log("Ładowanie bazy z nowymi danymi (Kategorie relacyjne)...");
     
     for (const rest of restaurants) {
       const cheapBeer = rest.menu?.some(m => m.name.toLowerCase().includes('piwo') && m.price <= 10) ? 1 : 0;
       const hasLunch = rest.hasLunch ? 1 : 0;
 
       const result = await sqlitedb.runAsync(
-        `INSERT INTO Restaurants (name, latitude, longitude, address, cuisine, description, image_url, video_url, has_lunch, has_cheap_beer, rating, reviews_count, google_maps_url, instagram_url) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO Restaurants (name, latitude, longitude, address, description, image_url, video_url, has_lunch, has_cheap_beer, rating, reviews_count, google_maps_url, instagram_url) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           rest.name, rest.coordinates.latitude, rest.coordinates.longitude, rest.address, 
-          rest.cuisine.join(', '), // Zostawiamy to jako kopię zapasową / cache
           rest.description, rest.image, rest.videoUrl, hasLunch, cheapBeer, 
           rest.rating, rest.reviewsCount, rest.googleMapsUrl, rest.instagramUrl
         ]
@@ -132,7 +129,6 @@ export async function initDatabase() {
         }
       }
     }
-    console.log("Baza załadowana pomyślnie z pełnymi relacjami!");
   }
   return db;
 }

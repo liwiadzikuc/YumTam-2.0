@@ -29,7 +29,7 @@ export const restaurants = [
     address: 'Kuźnicza 10, Wrocław',
     hasLunch: true, 
     image: 'https://i.redd.it/iggy-pizza-wroclaw-amazing-v0-i45fg5o6j0g81.jpg?width=3000&format=pjpg&auto=webp&s=bca1345af42e8c1686376268c4620537761a6c9a',
-    videoUrl: "video_pizza",
+    videoUrl: "video_iggypizza",
     description: 'Najlepsza neapolitańska pizza w mieście. Klimatyczne wnętrze i świetne drinki.',
     coordinates: { latitude: 51.11111, longitude: 17.03379 },
     googleMapsUrl: 'https://www.google.com/maps/place/Iggy+Pizza/@51.1110052,17.0312332,17z/data=!4m18!1m9!3m8!1s0x470fc275f20a08f7:0x9f567aefe7380ecc!2sIggy+Pizza!8m2!3d51.1110019!4d17.0338081!9m1!1b1!16s%2Fg%2F11fzjhs1hk!3m7!1s0x470fc275f20a08f7:0x9f567aefe7380ecc!8m2!3d51.1110019!4d17.0338081!9m1!1b1!16s%2Fg%2F11fzjhs1hk?entry=ttu&g_ep=EgoyMDI1MTIwOS4wIKXMDSoASAFQAw%3D%3D',

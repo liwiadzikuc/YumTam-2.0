@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useVideoPlayer, VideoView } from 'expo-video'; // <--- NOWY IMPORT
+import { useVideoPlayer, VideoView } from 'expo-video';
 import { useRef } from 'react';
 import { Animated, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -22,23 +22,13 @@ export default function RestaurantDetailsScreen({ route, navigation }) {
     animatedScale.setValue(1); 
 
     Animated.sequence([
-      Animated.timing(animatedScale, {
-        toValue: 1.4, 
-        duration: 120,
-        useNativeDriver: true, 
-      }),
-      Animated.spring(animatedScale, {
-        toValue: 1, 
-        friction: 4, 
-        tension: 40,
-        useNativeDriver: true,
-      }),
+      Animated.timing(animatedScale, { toValue: 1.4, duration: 120, useNativeDriver: true }),
+      Animated.spring(animatedScale, { toValue: 1, friction: 4, tension: 40, useNativeDriver: true }),
     ]).start();
   };
 
-  const animatedStyle = {
-    transform: [{ scale: animatedScale }],
-  };
+  const animatedStyle = { transform: [{ scale: animatedScale }] };
+
   return (
     <ScrollView style={styles.container}>
       {videoSource ? (
@@ -62,8 +52,9 @@ export default function RestaurantDetailsScreen({ route, navigation }) {
               <Text style={styles.reviewsCount}>({restaurant.reviews_count} opinii)</Text>
             </View>
 
-            <Text style={styles.cuisine}>{restaurant.cuisine} • {restaurant.address}</Text>
+            <Text style={styles.cuisine}>{restaurant.rel_categories} • {restaurant.address}</Text>
           </View>
+          
           <TouchableOpacity onPress={handleLikePress} activeOpacity={0.7}>
             <Animated.View style={animatedStyle}>
               <Ionicons name={isFav ? "heart" : "heart-outline"} size={35} color="#FF4500" />
@@ -141,5 +132,4 @@ const styles = StyleSheet.create({
   addBtn: { backgroundColor: '#FF4500', padding: 15, borderRadius: 15, alignItems: 'center', marginBottom: 30 },
   addBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
   subTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 15 },
-
 });

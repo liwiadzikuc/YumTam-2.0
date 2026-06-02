@@ -6,9 +6,7 @@ const { width } = Dimensions.get('window');
 export default function RestaurantCard({ restaurant, onClose, onDetails }) {
   if (!restaurant) return null;
 
-  const cuisineText = Array.isArray(restaurant.cuisine) 
-    ? restaurant.cuisine.join(', ') 
-    : restaurant.cuisine;
+  const cuisineText = restaurant.rel_categories ? restaurant.rel_categories : "Brak kategorii";
 
   return (
     <View style={styles.container}>
@@ -43,81 +41,16 @@ export default function RestaurantCard({ restaurant, onClose, onDetails }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    bottom: 100, 
-    left: 20,
-    right: 20,
-    backgroundColor: 'white',
-    borderRadius: 16,
-    flexDirection: 'row',
-    padding: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 10,
-    height: 130,
-  },
-  image: {
-    width: 110,
-    height: '100%',
-    borderRadius: 12,
-    backgroundColor: '#eee',
-  },
-  content: {
-    flex: 1,
-    marginLeft: 12,
-    justifyContent: 'space-between',
-    paddingVertical: 2,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    flex: 1,
-    marginRight: 5,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  rating: {
-    fontWeight: 'bold',
-    color: '#FF4500',
-  },
-  dot: {
-    marginHorizontal: 5,
-    color: '#ccc',
-  },
-  cuisine: {
-    color: 'gray',
-    fontSize: 13,
-    flex: 1,
-  },
-  address: {
-    color: '#777',
-    fontSize: 12,
-    marginBottom: 5,
-  },
-  button: {
-    backgroundColor: '#333',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    alignSelf: 'flex-start',
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
+  container: { position: 'absolute', bottom: 100, left: 20, right: 20, backgroundColor: 'white', borderRadius: 16, flexDirection: 'row', padding: 10, shadowColor: "#000", shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 10, height: 130 },
+  image: { width: 110, height: '100%', borderRadius: 12, backgroundColor: '#eee' },
+  content: { flex: 1, marginLeft: 12, justifyContent: 'space-between', paddingVertical: 2 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  title: { fontSize: 18, fontWeight: 'bold', color: '#333', flex: 1, marginRight: 5 },
+  row: { flexDirection: 'row', alignItems: 'center' },
+  rating: { fontWeight: 'bold', color: '#FF4500' },
+  dot: { marginHorizontal: 5, color: '#ccc' },
+  cuisine: { color: 'gray', fontSize: 13, flex: 1 },
+  address: { color: '#777', fontSize: 12, marginBottom: 5 },
+  button: { backgroundColor: '#333', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', alignSelf: 'flex-start' },
+  buttonText: { color: 'white', fontSize: 14, fontWeight: 'bold' },
 });
