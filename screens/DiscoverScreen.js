@@ -8,6 +8,7 @@ import DiscoverHeader from '../components/DiscoverHeader';
 import FilterModal from '../components/FilterModal';
 import RestaurantCard from '../components/RestaurantCard';
 
+import { useTheme } from '../theme';
 import { useDiscoverViewModel } from '../viewmodels/useDiscoverViewModel';
 
 const CENTER_LAT = 51.1100;
@@ -15,6 +16,8 @@ const CENTER_LNG = 17.0325;
 
 export default function DiscoverScreen({ navigation }) {
   const mapRef = useRef(null);
+  const theme = useTheme();
+  const styles = makeStyles(theme);
   
   const {
     searchText, setSearchText, selectedCategories, setSelectedCategories,
@@ -73,7 +76,7 @@ export default function DiscoverScreen({ navigation }) {
             const isVisited = visitedIds.includes(marker.id);
             const isFavorite = marker.is_favorite === 1;
             
-            let pinColor = isVisited ? "#4CAF50" : (isFavorite ? "#2196F3" : "#FF5722"); 
+            let pinColor = isVisited ? theme.colors.success : (isFavorite ? theme.colors.info : theme.colors.accent);
             
             return (
               <Marker 
@@ -127,7 +130,7 @@ export default function DiscoverScreen({ navigation }) {
 
       {!isListView && (
         <TouchableOpacity style={styles.diceButton} onPress={() => handleRandomize(mapRef)}>
-          <Ionicons name="dice-outline" size={32} color="white" />
+          <Ionicons name="dice-outline" size={32} color={theme.colors.surface} />
         </TouchableOpacity>
       )}
 
@@ -160,18 +163,18 @@ export default function DiscoverScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
+const makeStyles = (theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: theme.colors.background },
   map: { width: '100%', height: '100%' },
   diceButton: {
     position: 'absolute', top: 170, right: 20,
-    backgroundColor: '#FF4500', width: 56, height: 56, borderRadius: 28,
+    backgroundColor: theme.colors.accent, width: 56, height: 56, borderRadius: 28,
     justifyContent: 'center', alignItems: 'center', elevation: 8
   },
   
   listCard: {
     flexDirection: 'row', 
-    backgroundColor: 'white', 
+    backgroundColor: theme.colors.surface, 
     borderRadius: 10, 
     marginBottom: 10,
     padding: 10, 
@@ -185,7 +188,7 @@ const styles = StyleSheet.create({
     width: 100, 
     height: 100, 
     borderRadius: 10,
-    backgroundColor: '#eee' 
+    backgroundColor: theme.colors.borderAlt 
   },
   listCardContent: { 
     flex: 1, 
@@ -195,17 +198,17 @@ const styles = StyleSheet.create({
   listCardTitle: { 
     fontSize: 18, 
     fontWeight: 'bold', 
-    color: '#333', 
+    color: theme.colors.text, 
     marginBottom: 5 
   },
   listCardRating: { 
     fontSize: 13, 
     fontWeight: 'bold', 
-    color: '#FF4500', 
+    color: theme.colors.accent, 
     marginBottom: 5 
   },
   listCardAddress: { 
     fontSize: 12, 
-    color: '#666' 
+    color: theme.colors.muted 
   }
 });

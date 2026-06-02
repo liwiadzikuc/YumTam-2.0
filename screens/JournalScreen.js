@@ -3,12 +3,15 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useState } from 'react';
 import { FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
+import { useTheme } from '../theme';
 import { useJournalViewModel } from '../viewmodels/useJournalViewModel';
 
 import StatsCard from '../components/StatsCard';
 import VisitCard from '../components/VisitCard';
 
 export default function JournalScreen({ navigation }) {
+  const theme = useTheme();
+  const styles = makeStyles(theme);
   const { 
     stats, loadData, sortBy, setSortBy, displayedVisits, 
     availableCompanions, selectedCompanionsFilter, toggleCompanionFilter 
@@ -45,9 +48,9 @@ export default function JournalScreen({ navigation }) {
             <Ionicons 
               name="people" 
               size={20} 
-              color={selectedCompanionsFilter.length > 0 ? "#FF4500" : "#666"} 
+              color={selectedCompanionsFilter.length > 0 ? theme.colors.accent : theme.colors.muted} 
             />
-            <Text style={[styles.filterTitle, selectedCompanionsFilter.length > 0 && { color: '#FF4500' }]}>
+            <Text style={[styles.filterTitle, selectedCompanionsFilter.length > 0 && { color: theme.colors.accent }]}>
               {selectedCompanionsFilter.length > 0 
                 ? `Aktywne filtry znajomych: ${selectedCompanionsFilter.length}` 
                 : 'Filtruj wg znajomych'}
@@ -55,7 +58,7 @@ export default function JournalScreen({ navigation }) {
             <Ionicons 
               name={isFilterVisible ? "chevron-up" : "chevron-down"} 
               size={20} 
-              color="#666" 
+              color={theme.colors.muted} 
               style={{ marginLeft: 'auto' }} 
             />
           </TouchableOpacity>
@@ -98,21 +101,21 @@ export default function JournalScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5', paddingHorizontal: 20, paddingTop: 60 },
+const makeStyles = (theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: theme.colors.background, paddingHorizontal: 20, paddingTop: 60 },
   sortRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15 },
-  sortChip: { flex: 1, backgroundColor: '#e0e0e0', paddingVertical: 10, borderRadius: 20, alignItems: 'center', marginHorizontal: 4 },
-  activeChip: { backgroundColor: '#333' },
-  sortText: { fontSize: 13, fontWeight: '600', color: '#555' },
-  activeText: { color: '#fff' },
-  emptyText: { textAlign: 'center', marginTop: 20, color: 'gray' },
+  sortChip: { flex: 1, backgroundColor: theme.colors.card, paddingVertical: 10, borderRadius: 20, alignItems: 'center', marginHorizontal: 4 },
+  activeChip: { backgroundColor: theme.colors.text },
+  sortText: { fontSize: 13, fontWeight: '600', color: theme.colors.muted },
+  activeText: { color: theme.colors.surface },
+  emptyText: { textAlign: 'center', marginTop: 20, color: theme.colors.muted },
 
   filterSection: { marginBottom: 15, paddingHorizontal: 15 },
-  filterToggleBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f5f5f5', padding: 12, borderRadius: 15 },
-  filterTitle: { fontSize: 14, fontWeight: 'bold', color: '#666', marginLeft: 10 },
+  filterToggleBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: theme.colors.card, padding: 12, borderRadius: 15 },
+  filterTitle: { fontSize: 14, fontWeight: 'bold', color: theme.colors.text, marginLeft: 10 },
   chipScroll: { marginTop: 10 },
-  chip: { backgroundColor: '#eee', paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, marginRight: 8 },
-  chipSelected: { backgroundColor: '#FF4500' },
-  chipText: { color: '#444', fontSize: 14, fontWeight: '600' },
-  chipTextSelected: { color: '#fff' },
+  chip: { backgroundColor: theme.colors.borderAlt, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, marginRight: 8 },
+  chipSelected: { backgroundColor: theme.colors.accent },
+  chipText: { color: theme.colors.text, fontSize: 14, fontWeight: '600' },
+  chipTextSelected: { color: theme.colors.surface },
 });

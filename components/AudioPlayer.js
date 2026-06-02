@@ -1,11 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTheme } from '../theme';
 
 export default function AudioPlayer({ isPlaying, onPlayPause, onDelete, title = "Notatka głosowa" }) {
+  const theme = useTheme();
+  const styles = makeStyles(theme);
+
   return (
     <View style={styles.audioPlayer}>
       <TouchableOpacity onPress={onPlayPause} style={styles.playBtn}>
-        <Ionicons name={isPlaying ? "pause" : "play"} size={24} color="white" />
+        <Ionicons name={isPlaying ? "pause" : "play"} size={24} color={theme.colors.surface} />
       </TouchableOpacity>
       
       <Text style={styles.audioText}>
@@ -14,21 +18,21 @@ export default function AudioPlayer({ isPlaying, onPlayPause, onDelete, title = 
       
       {onDelete && (
         <TouchableOpacity onPress={onDelete}>
-          <Ionicons name="trash" size={24} color="gray" />
+          <Ionicons name="trash" size={24} color={theme.colors.muted} />
         </TouchableOpacity>
       )}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme) => StyleSheet.create({
   audioPlayer: { 
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#f9f9f9', 
-    padding: 10, borderRadius: 15, marginBottom: 20, borderWidth: 1, borderColor: '#eee' 
+    flexDirection: 'row', alignItems: 'center', backgroundColor: theme.colors.surface, 
+    padding: 10, borderRadius: 15, marginBottom: 20, borderWidth: 1, borderColor: theme.colors.borderAlt 
   },
   playBtn: { 
-    backgroundColor: '#FF4500', borderRadius: 20, width: 40, height: 40, 
+    backgroundColor: theme.colors.accent, borderRadius: 20, width: 40, height: 40, 
     justifyContent: 'center', alignItems: 'center', marginRight: 15 
   },
-  audioText: { flex: 1, color: '#333', fontWeight: '500' }
+  audioText: { flex: 1, color: theme.colors.text, fontWeight: '500' }
 });

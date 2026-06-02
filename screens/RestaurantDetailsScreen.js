@@ -4,9 +4,12 @@ import { useRef } from 'react';
 import { Animated, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import VisitCard from '../components/VisitCard';
+import { useTheme } from '../theme';
 import { useRestaurantDetailsViewModel } from '../viewmodels/useRestaurantDetailsViewModel';
 
 export default function RestaurantDetailsScreen({ route, navigation }) {
+  const theme = useTheme();
+  const styles = makeStyles(theme);
   const { restaurant } = route.params;
   const { isFav, history, menu, videoSource, toggleFavorite, openLink } = useRestaurantDetailsViewModel(restaurant);
   const animatedScale = useRef(new Animated.Value(1)).current;
@@ -57,7 +60,7 @@ export default function RestaurantDetailsScreen({ route, navigation }) {
           
           <TouchableOpacity onPress={handleLikePress} activeOpacity={0.7}>
             <Animated.View style={animatedStyle}>
-              <Ionicons name={isFav ? "heart" : "heart-outline"} size={35} color="#FF4500" />
+              <Ionicons name={isFav ? "heart" : "heart-outline"} size={35} color={theme.colors.accent} />
             </Animated.View>
           </TouchableOpacity>
         </View>
@@ -65,15 +68,15 @@ export default function RestaurantDetailsScreen({ route, navigation }) {
         <View style={styles.linksRow}>
           {restaurant.google_maps_url ? (
             <TouchableOpacity style={styles.linkBtn} onPress={() => openLink(restaurant.google_maps_url)}>
-              <Ionicons name="map" size={18} color="#FF4500" />
+              <Ionicons name="map" size={18} color={theme.colors.accent} />
               <Text style={styles.linkText}>Google Maps</Text>
             </TouchableOpacity>
           ) : null}
           
           {restaurant.instagram_url ? (
             <TouchableOpacity style={styles.linkBtn} onPress={() => openLink(restaurant.instagram_url)}>
-              <Ionicons name="logo-instagram" size={18} color="#E1306C" />
-              <Text style={[styles.linkText, {color: '#E1306C'}]}>Instagram</Text>
+              <Ionicons name="logo-instagram" size={18} color={theme.colors.info} />
+              <Text style={[styles.linkText, {color: theme.colors.info}]}>Instagram</Text>
             </TouchableOpacity>
           ) : null}
         </View>
@@ -97,7 +100,7 @@ export default function RestaurantDetailsScreen({ route, navigation }) {
         </TouchableOpacity>
 
         <Text style={styles.subTitle}>Twoja historia tutaj:</Text>
-        {history.length === 0 && <Text style={{color: 'gray'}}>Nie masz tu jeszcze wspomnień.</Text>}
+        {history.length === 0 && <Text style={{color: theme.colors.muted}}>Nie masz tu jeszcze wspomnień.</Text>}
         
         {history.map(visit => (
           <VisitCard 
@@ -111,25 +114,25 @@ export default function RestaurantDetailsScreen({ route, navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+const makeStyles = (theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: theme.colors.background },
   image: { width: '100%', height: 250 },
   content: { padding: 20 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
-  name: { fontSize: 24, fontWeight: 'bold' },
+  name: { fontSize: 24, fontWeight: 'bold', color: theme.colors.text },
   ratingRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
-  ratingText: { fontWeight: 'bold', fontSize: 16, color: '#333' },
-  reviewsCount: { color: 'gray', marginLeft: 8, fontSize: 14 },
-  cuisine: { color: '#666', marginTop: 5 },
+  ratingText: { fontWeight: 'bold', fontSize: 16, color: theme.colors.text },
+  reviewsCount: { color: theme.colors.muted, marginLeft: 8, fontSize: 14 },
+  cuisine: { color: theme.colors.muted, marginTop: 5 },
   linksRow: { flexDirection: 'row', gap: 10, marginBottom: 15 },
-  linkBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff0eb', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12 },
-  linkText: { color: '#FF4500', fontWeight: 'bold', marginLeft: 6, fontSize: 13 },
-  description: { fontSize: 16, lineHeight: 24, color: '#444', marginBottom: 20 },
-  menuSection: { marginBottom: 25, backgroundColor: '#f9f9f9', padding: 15, borderRadius: 15 },
-  menuItem: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#eee' },
-  menuName: { fontSize: 15, color: '#333' },
-  menuPrice: { fontSize: 15, fontWeight: 'bold', color: '#FF4500' },
-  addBtn: { backgroundColor: '#FF4500', padding: 15, borderRadius: 15, alignItems: 'center', marginBottom: 30 },
-  addBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
-  subTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 15 },
+  linkBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: theme.colors.surface, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12 },
+  linkText: { color: theme.colors.accent, fontWeight: 'bold', marginLeft: 6, fontSize: 13 },
+  description: { fontSize: 16, lineHeight: 24, color: theme.colors.text, marginBottom: 20 },
+  menuSection: { marginBottom: 25, backgroundColor: theme.colors.card, padding: 15, borderRadius: 15, borderWidth: 1, borderColor: theme.colors.borderAlt },
+  menuItem: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: theme.colors.borderAlt },
+  menuName: { fontSize: 15, color: theme.colors.text },
+  menuPrice: { fontSize: 15, fontWeight: 'bold', color: theme.colors.accent },
+  addBtn: { backgroundColor: theme.colors.accent, padding: 15, borderRadius: 15, alignItems: 'center', marginBottom: 30 },
+  addBtnText: { color: theme.colors.surface, fontWeight: 'bold', fontSize: 16 },
+  subTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 15, color: theme.colors.text },
 });
