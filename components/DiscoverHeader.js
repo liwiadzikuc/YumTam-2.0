@@ -7,7 +7,9 @@ export default function DiscoverHeader({
   onOpenFilters, 
   activeFiltersCount,
   displayedRestaurants, 
-  onSelectRestaurant   
+  onSelectRestaurant,
+  isListView,      
+  onToggleView    
 }) {
   return (
     <View style={styles.topContainer}>
@@ -30,6 +32,10 @@ export default function DiscoverHeader({
             </TouchableOpacity>
           )}
         </View>
+
+        <TouchableOpacity style={styles.filterButton} onPress={onToggleView}>
+          <Ionicons name={isListView ? "map" : "list"} size={24} color="white" />
+        </TouchableOpacity>
 
         <TouchableOpacity style={styles.filterButton} onPress={onOpenFilters}>
           <Ionicons name="options" size={24} color="white" />

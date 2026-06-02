@@ -14,6 +14,7 @@ export function useDiscoverViewModel() {
   const [hasLunch, setHasLunch] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
+  const [isListView, setIsListView] = useState(false);
 
   const [rolledIds, setRolledIds] = useState([]);
   const [mapCenter, setMapCenter] = useState({ latitude: 51.1100, longitude: 17.0325 });
@@ -89,6 +90,7 @@ export function useDiscoverViewModel() {
     selectedRestaurant, setSelectedRestaurant,
     displayedRestaurants, visitedIds,
     loadInitialData, handleRandomize,
-    mapCenter 
+    mapCenter,
+    isListView, setIsListView
   };
 }
