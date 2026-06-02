@@ -1,41 +1,51 @@
+import { eq, sql } from 'drizzle-orm';
+import { drizzle } from 'drizzle-orm/expo-sqlite';
 import * as SQLite from 'expo-sqlite';
+import { categoriesTable, menuItemsTable, restaurantCategoryTable, restaurantsTable, visitsTable } from '../schema';
+
+const getDb = async () => {
+  const sqliteDb = await SQLite.openDatabaseAsync('yumtam.db');
+  return drizzle(sqliteDb);
+};
 
 export class RestaurantModel {
   static async getAll() {
-    const db = await SQLite.openDatabaseAsync('yumtam.db');
-    return await db.getAllAsync(`
-      SELECT 
-        R.*,
-        (SELECT GROUP_CONCAT(C.name, ', ') 
-         FROM Categories C 
-         JOIN Restaurant_Category RC ON C.id = RC.category_id 
-         WHERE RC.restaurant_id = R.id) as rel_categories
-      FROM Restaurants R
-    `);
+    const db = await getDb();
+    return await db.select({
+        ...restaurantsTable,
+        rel_categories: sql`GROUP_CONCAT(${categoriesTable.name}, ', ')`
+      })
+      .from(restaurantsTable)
+      .leftJoin(restaurantCategoryTable, eq(restaurantsTable.id, restaurantCategoryTable.restaurant_id))
+      .leftJoin(categoriesTable, eq(restaurantCategoryTable.category_id, categoriesTable.id))
+      .groupBy(restaurantsTable.id);
   }
 
   static async getAllCategories() {
-    const db = await SQLite.openDatabaseAsync('yumtam.db');
-    return await db.getAllAsync('SELECT name FROM Categories ORDER BY name ASC');
+    const db = await getDb();
+    return await db.select({ name: categoriesTable.name }).from(categoriesTable).orderBy(categoriesTable.name);
   }
 
   static async getMenu(restaurantId) {
-    const db = await SQLite.openDatabaseAsync('yumtam.db');
-    return await db.getAllAsync('SELECT * FROM MenuItems WHERE restaurant_id = ?', [restaurantId]);
+    const db = await getDb();
+    return await db.select().from(menuItemsTable).where(eq(menuItemsTable.restaurant_id, restaurantId));
   }
 
   static async toggleFavorite(restaurantId, isCurrentlyFav) {
-    const db = await SQLite.openDatabaseAsync('yumtam.db');
+    const db = await getDb();
     const newVal = isCurrentlyFav ? 0 : 1;
-    await db.runAsync('UPDATE Restaurants SET is_favorite = ? WHERE id = ?', [newVal, restaurantId]);
+    await db.update(restaurantsTable).set({ is_favorite: newVal }).where(eq(restaurantsTable.id, restaurantId));
   }
 
   static async getStats() {
-    const db = await SQLite.openDatabaseAsync('yumtam.db');
-    const totalRes = await db.getFirstAsync('SELECT COUNT(*) as c FROM Restaurants');
-    const discRes = await db.getFirstAsync('SELECT COUNT(DISTINCT restaurant_id) as c FROM Visits');
-    const percent = totalRes.c > 0 ? Math.round((discRes.c / totalRes.c) * 100) : 0;
+    const db = await getDb();
+    const totalResResult = await db.select({ count: sql`COUNT(*)` }).from(restaurantsTable);
+    const discResResult = await db.select({ count: sql`COUNT(DISTINCT ${visitsTable.restaurant_id})` }).from(visitsTable);
     
-    return { total: totalRes.c, discovered: discRes.c, percent };
+    const totalRes = totalResResult[0].count;
+    const discRes = discResResult[0].count;
+    const percent = totalRes > 0 ? Math.round((discRes / totalRes) * 100) : 0;
+    
+    return { total: totalRes, discovered: discRes, percent };
   }
 }

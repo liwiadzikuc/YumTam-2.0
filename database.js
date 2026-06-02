@@ -1,14 +1,16 @@
+import { drizzle } from 'drizzle-orm/expo-sqlite';
 import * as SQLite from 'expo-sqlite';
 import { restaurants } from './data/restaurants';
 
 export async function initDatabase() {
-  const db = await SQLite.openDatabaseAsync('yumtam.db');
-  await db.execAsync('PRAGMA foreign_keys = ON;');
+  const sqlitedb = await SQLite.openDatabaseAsync('yumtam.db');
+  await sqlitedb.execAsync('PRAGMA foreign_keys = ON;');
+  const db = drizzle(sqlitedb);
 
   // reset bazy - odkomentuj
-  //await db.execAsync('DROP TABLE IF EXISTS MediaItems; DROP TABLE IF EXISTS Visit_Companion; DROP TABLE IF EXISTS Companions; DROP TABLE IF EXISTS Visits; DROP TABLE IF EXISTS MenuItems; DROP TABLE IF EXISTS Restaurant_Category; DROP TABLE IF EXISTS Categories; DROP TABLE IF EXISTS Restaurants;');
+  //await sqlitedb.execAsync('DROP TABLE IF EXISTS MediaItems; DROP TABLE IF EXISTS Visit_Companion; DROP TABLE IF EXISTS Companions; DROP TABLE IF EXISTS Visits; DROP TABLE IF EXISTS MenuItems; DROP TABLE IF EXISTS Restaurant_Category; DROP TABLE IF EXISTS Categories; DROP TABLE IF EXISTS Restaurants;');
 
-  await db.execAsync(`
+  await sqlitedb.execAsync(`
     CREATE TABLE IF NOT EXISTS Restaurants (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
@@ -18,6 +20,7 @@ export async function initDatabase() {
         cuisine TEXT,
         description TEXT,
         image_url TEXT,
+        video_url TEXT,
         is_favorite INTEGER DEFAULT 0,
         has_lunch INTEGER DEFAULT 0,
         has_cheap_beer INTEGER DEFAULT 0,
@@ -79,7 +82,8 @@ export async function initDatabase() {
     );
   `);
 
-  const check = await db.getFirstAsync('SELECT COUNT(*) as count FROM Restaurants');
+  const check = await sqlitedb.getFirstAsync('SELECT COUNT(*) as count FROM Restaurants');
+  
   if (check.count === 0) {
     console.log("Ładowanie bazy z nowymi danymi (Kategorie relacyjne)...");
     
@@ -87,33 +91,32 @@ export async function initDatabase() {
       const cheapBeer = rest.menu?.some(m => m.name.toLowerCase().includes('piwo') && m.price <= 10) ? 1 : 0;
       const hasLunch = rest.hasLunch ? 1 : 0;
 
-      const result = await db.runAsync(
-        `INSERT INTO Restaurants (name, latitude, longitude, address, cuisine, description, image_url, has_lunch, has_cheap_beer, rating, reviews_count, google_maps_url, instagram_url) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      const result = await sqlitedb.runAsync(
+        `INSERT INTO Restaurants (name, latitude, longitude, address, cuisine, description, image_url, video_url, has_lunch, has_cheap_beer, rating, reviews_count, google_maps_url, instagram_url) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           rest.name, rest.coordinates.latitude, rest.coordinates.longitude, rest.address, 
           rest.cuisine.join(', '), // Zostawiamy to jako kopię zapasową / cache
-          rest.description, rest.image, hasLunch, cheapBeer, 
+          rest.description, rest.image, rest.videoUrl, hasLunch, cheapBeer, 
           rest.rating, rest.reviewsCount, rest.googleMapsUrl, rest.instagramUrl
         ]
       );
       
       const newRestaurantId = result.lastInsertRowId;
 
-      // DODAWANIE KATEGORII RELACYJNYCH
       if (rest.cuisine && Array.isArray(rest.cuisine)) {
         for (const catName of rest.cuisine) {
-          let catRecord = await db.getFirstAsync('SELECT id FROM Categories WHERE name = ?', [catName]);
+          let catRecord = await sqlitedb.getFirstAsync('SELECT id FROM Categories WHERE name = ?', [catName]);
           let catId;
           
           if (!catRecord) {
-            const catInsert = await db.runAsync('INSERT INTO Categories (name) VALUES (?)', [catName]);
+            const catInsert = await sqlitedb.runAsync('INSERT INTO Categories (name) VALUES (?)', [catName]);
             catId = catInsert.lastInsertRowId;
           } else {
             catId = catRecord.id;
           }
 
-          await db.runAsync(
+          await sqlitedb.runAsync(
             'INSERT INTO Restaurant_Category (restaurant_id, category_id) VALUES (?, ?)',
             [newRestaurantId, catId]
           );
@@ -122,7 +125,7 @@ export async function initDatabase() {
 
       if (rest.menu) {
         for (const item of rest.menu) {
-          await db.runAsync(
+          await sqlitedb.runAsync(
             'INSERT INTO MenuItems (restaurant_id, name, price) VALUES (?, ?, ?)',
             [newRestaurantId, item.name, item.price]
           );

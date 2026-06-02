@@ -1,19 +1,17 @@
 import * as Haptics from 'expo-haptics';
 import { useEffect, useState } from 'react';
 import { Linking } from 'react-native';
+import { LOCAL_VIDEOS } from '../data/mediaMap';
 import { RestaurantModel } from '../models/RestaurantModel';
 import { VisitModel } from '../models/VisitModel';
 
-const RESTAURANT_VIDEOS = {
-  1: require('../assets/video/restaurant4k.mp4'), 
-};
 
 export function useRestaurantDetailsViewModel(restaurant) {
   const [isFav, setIsFav] = useState(restaurant.is_favorite === 1);
   const [history, setHistory] = useState([]);
   const [menu, setMenu] = useState([]);
 
-  const videoSource = RESTAURANT_VIDEOS[restaurant.id] || null;
+  const videoSource = restaurant.video_url ? LOCAL_VIDEOS[restaurant.video_url] : null;
 
   const loadData = async () => {
     const historyData = await VisitModel.getHistoryForRestaurant(restaurant.id);
