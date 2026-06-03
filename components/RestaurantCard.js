@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image } from 'expo-image';
+import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '../theme';
 
 const { width } = Dimensions.get('window');
@@ -14,7 +15,14 @@ export default function RestaurantCard({ restaurant, onClose, onDetails }) {
   return (
     <View style={styles.container}>
       
-      <Image source={{ uri: restaurant.image_url || 'https://picsum.photos/400/200' }} style={styles.image} />
+      <Image 
+     source={{ uri: restaurant.image_url }} 
+     style={styles.image} 
+     contentFit="cover"
+     transition={300}
+     cachePolicy="memory-disk" 
+     
+   />
 
       <View style={styles.content}>
         

@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
+import { Image } from 'expo-image';
 import { useCallback, useRef } from 'react';
-import { FlatList, Image, Keyboard, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, Keyboard, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 
 import DiscoverHeader from '../components/DiscoverHeader';
@@ -54,7 +55,13 @@ export default function DiscoverScreen({ navigation }) {
                 navigation.navigate('RestaurantDetails', { restaurant: item });
               }}
             >
-              <Image source={{ uri: item.image_url || 'https://picsum.photos/400/200' }} style={styles.listCardImage} />
+              <Image 
+                source={{ uri: item.image_url }} 
+                style={[styles.image, { width: '30%', height: 100, borderRadius: 10, marginBottom: 10 }]}
+                contentFit="cover"
+                transition={300}
+                cachePolicy="memory-disk" 
+              />
               <View style={styles.listCardContent}>
                 <Text style={styles.listCardTitle} numberOfLines={1}>{item.name}</Text>
                 <Text style={styles.listCardRating}>⭐ {item.rating} • {Array.isArray(item.cuisine) ? item.cuisine.join(', ') : item.cuisine}</Text>
