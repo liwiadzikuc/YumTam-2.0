@@ -1,7 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import { useEffect, useState } from 'react';
 import { Linking } from 'react-native';
-import { LOCAL_VIDEOS } from '../data/mediaMap';
 import { RestaurantModel } from '../models/RestaurantModel';
 import { VisitModel } from '../models/VisitModel';
 
