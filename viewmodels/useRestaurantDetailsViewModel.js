@@ -11,7 +11,9 @@ export function useRestaurantDetailsViewModel(restaurant) {
   const [history, setHistory] = useState([]);
   const [menu, setMenu] = useState([]);
 
-  const videoSource = restaurant.video_url ? LOCAL_VIDEOS[restaurant.video_url] : null;
+  const videoSource = restaurant.video_url 
+  ? (restaurant.video_url.startsWith('http') ? restaurant.video_url : LOCAL_VIDEOS[restaurant.video_url]) 
+  : null;
 
   const loadData = async () => {
     const historyData = await VisitModel.getHistoryForRestaurant(restaurant.id);
