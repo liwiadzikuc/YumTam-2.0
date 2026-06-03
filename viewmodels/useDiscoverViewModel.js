@@ -18,6 +18,7 @@ export function useDiscoverViewModel() {
 
   const [rolledIds, setRolledIds] = useState([]);
   const [mapCenter, setMapCenter] = useState({ latitude: 51.1100, longitude: 17.0325 });
+  const [hasLocationPermission, setHasLocationPermission] = useState(false);
 
   const [UNIQUE_CATEGORIES, setUniqueCategories] = useState([]);
 
@@ -34,11 +35,7 @@ export function useDiscoverViewModel() {
 
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status === 'granted') {
-        const location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-        setMapCenter({
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
-        });
+        setHasLocationPermission(true);
       }
     } catch (error) { 
       console.error("Błąd ładowania danych:", error); 
@@ -91,6 +88,7 @@ export function useDiscoverViewModel() {
     displayedRestaurants, visitedIds,
     loadInitialData, handleRandomize,
     mapCenter,
-    isListView, setIsListView
+    isListView, setIsListView,
+    hasLocationPermission
   };
 }

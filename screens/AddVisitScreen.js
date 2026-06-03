@@ -28,7 +28,7 @@ export default function AddVisitScreen({ route, navigation }) {
         <StarRating 
           rating={rating} 
           size={40} 
-          onRatingChange={(nowaOcena) => setRating(nowaOcena)} 
+          onRatingChange={(newRating) => setRating(newRating)} 
         />
       </View>
       

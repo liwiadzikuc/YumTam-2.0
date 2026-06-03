@@ -25,7 +25,7 @@ export default function DiscoverScreen({ navigation }) {
     isCheapBeer, setIsCheapBeer, hasLunch, setHasLunch, UNIQUE_CATEGORIES,
     modalVisible, setModalVisible, selectedRestaurant, setSelectedRestaurant,
     displayedRestaurants, visitedIds, loadInitialData, handleRandomize,
-    mapCenter, isListView, setIsListView
+    mapCenter, isListView, setIsListView, hasLocationPermission
   } = useDiscoverViewModel();
 
   useFocusEffect(useCallback(() => { loadInitialData(); }, []));
@@ -75,7 +75,7 @@ export default function DiscoverScreen({ navigation }) {
           ref={mapRef}
           style={styles.map}
           initialRegion={{ latitude: mapCenter.latitude, longitude: mapCenter.longitude, latitudeDelta: 0.02, longitudeDelta: 0.02 }}
-          showsUserLocation={true} 
+          showsUserLocation={hasLocationPermission} 
           onRegionChangeComplete={handleRegionChangeComplete}
           onPress={() => { setSelectedRestaurant(null); Keyboard.dismiss(); }}
         >
