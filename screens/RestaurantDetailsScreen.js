@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useRef } from 'react';
-import { Animated, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import VisitCard from '../components/VisitCard';
 import { useTheme } from '../theme';
@@ -42,7 +43,13 @@ export default function RestaurantDetailsScreen({ route, navigation }) {
           nativeControls={false}
         />
       ) : (
-        <Image source={{ uri: restaurant.image_url || 'https://picsum.photos/400/200' }} style={styles.image} />
+       <Image 
+          source={{ uri: restaurant.image_url || 'https://picsum.photos/400/200' }} 
+          style={styles.image} 
+          contentFit="cover"
+          transition={500} 
+          cachePolicy="memory-disk" 
+        />
       )}
 
       <View style={styles.content}>
