@@ -1,8 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import AudioPlayer from '../components/AudioPlayer';
+import StarRating from '../components/StarRating';
 import { useTheme } from '../theme';
 import { useAddVisitViewModel } from '../viewmodels/useAddVisitViewModel';
+
+
 
 export default function AddVisitScreen({ route, navigation }) {
   const theme = useTheme();
@@ -22,19 +25,11 @@ export default function AddVisitScreen({ route, navigation }) {
       <Text style={styles.header}>Jak było w {restaurant.name}?</Text>
 
       <View style={styles.stars}>
-        {[1, 2, 3, 4, 5].map((i) => {
-          let iconName = 'star-outline';
-          if (rating >= i) iconName = 'star';
-          else if (rating >= i - 0.5) iconName = 'star-half';
-
-          return (
-            <View key={i} style={{ position: 'relative', width: 40, height: 40, marginHorizontal: 5 }}>
-              <TouchableOpacity style={{ position: 'absolute', left: 0, width: 20, height: 40, zIndex: 1 }} onPress={() => setRating(i - 0.5)} />
-              <TouchableOpacity style={{ position: 'absolute', right: 0, width: 20, height: 40, zIndex: 1 }} onPress={() => setRating(i)} />
-              <Ionicons name={iconName} size={40} color={theme.colors.accent} />
-            </View>
-          );
-        })}
+        <StarRating 
+          rating={rating} 
+          size={40} 
+          onRatingChange={(nowaOcena) => setRating(nowaOcena)} 
+        />
       </View>
       
       {rating === 0 && <Text style={styles.ratingText}>Wymagana ocena</Text>}

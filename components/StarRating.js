@@ -1,9 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
-import { View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { useTheme } from '../theme';
 
-export default function StarRating({ rating, size = 16 }) {
+export default function StarRating({ rating, size = 16, onRatingChange }) {
   const theme = useTheme();
+  
+  const isInteractive = !!onRatingChange; 
 
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -12,7 +14,25 @@ export default function StarRating({ rating, size = 16 }) {
         if (rating >= i) name = 'star';
         else if (rating >= i - 0.5) name = 'star-half';
         
-        return <Ionicons key={i} name={name} size={size} color={theme.colors.accent} style={{ marginRight: 2 }} />;
+        return (
+          <View key={i} style={{ position: 'relative', width: size, height: size, marginHorizontal: isInteractive ? 5 : 2 }}>
+            
+            {isInteractive && (
+              <>
+                <TouchableOpacity 
+                  style={{ position: 'absolute', left: 0, width: size / 2, height: size, zIndex: 1 }} 
+                  onPress={() => onRatingChange(i - 0.5)} 
+                />
+                <TouchableOpacity 
+                  style={{ position: 'absolute', right: 0, width: size / 2, height: size, zIndex: 1 }} 
+                  onPress={() => onRatingChange(i)} 
+                />
+              </>
+            )}
+            
+            <Ionicons name={name} size={size} color={theme.colors.accent} />
+          </View>
+        );
       })}
     </View>
   );
