@@ -82,8 +82,8 @@ export default function RestaurantDetailsScreen({ route, navigation }) {
           
           {restaurant.instagram_url ? (
             <TouchableOpacity style={styles.linkBtn} onPress={() => openLink(restaurant.instagram_url)}>
-              <Ionicons name="logo-instagram" size={18} color={theme.colors.info} />
-              <Text style={[styles.linkText, {color: theme.colors.info}]}>Instagram</Text>
+              <Ionicons name="logo-instagram" size={18} color="#E1306C" />
+              <Text style={[styles.linkText, {color: '#E1306C'}]}>Instagram</Text>
             </TouchableOpacity>
           ) : null}
         </View>

@@ -105,7 +105,7 @@ const makeStyles = (theme) => StyleSheet.create({
   galleryTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 15, color: theme.colors.text },
   image: { width: '100%', height: 250, borderRadius: 15, marginBottom: 15 },
 
-  deleteBtn: { flexDirection: 'row', backgroundColor: theme.colors.info, padding: 15, borderRadius: 15, justifyContent: 'center', alignItems: 'center', marginBottom: 15 },
+  deleteBtn: { flexDirection: 'row', backgroundColor: theme.colors.danger, padding: 15, borderRadius: 15, justifyContent: 'center', alignItems: 'center', marginBottom: 15 },
   deleteBtnText: { color: theme.colors.surface, fontWeight: 'bold', fontSize: 16, marginLeft: 10 },
 
   modalBg: { flex: 1, backgroundColor: theme.colors.overlay },
