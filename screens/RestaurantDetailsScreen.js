@@ -102,7 +102,7 @@ export default function RestaurantDetailsScreen({ route, navigation }) {
           </View>
         )}
 
-        <TouchableOpacity style={styles.addBtn} onPress={() => navigation.navigate('AddVisit', { restaurant })}>
+        <TouchableOpacity testID="add-memory-button" style={styles.addBtn} onPress={() => navigation.navigate('AddVisit', { restaurant })}>
           <Text style={styles.addBtnText}>Dodaj wspomnienie</Text>
         </TouchableOpacity>
 

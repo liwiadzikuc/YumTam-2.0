@@ -84,6 +84,14 @@ describe('YumTam - Testy Integracyjne Interfejsu (Cross-Boundary)', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers(); 
+  });
+
+  afterEach(() => {
+    TestRenderer.act(() => {
+      jest.runAllTimers();
+    });
+    jest.useRealTimers();
   });
 
   const mockRestaurant = { 
@@ -108,18 +116,15 @@ describe('YumTam - Testy Integracyjne Interfejsu (Cross-Boundary)', () => {
     expect(virtualDOM).toContain('Pizza Margherita');
   });
 
-  it('TEST 2: Integracja Nawigacji - Przycisk "Dodaj wspomnienie" otwiera formularz', () => {
+  it('TEST 2: Przycisk oznaczony testID otwiera formularz', () => {
     let view;
     TestRenderer.act(() => {
       view = TestRenderer.create(<RestaurantDetailsScreen route={{ params: { restaurant: mockRestaurant } }} navigation={mockNavigation} />);
     });
-
-    const clickableElements = view.root.findAll(node => node.props && typeof node.props.onPress === 'function');
+    const addButton = view.root.findByProps({ testID: 'add-memory-button' });
     
     TestRenderer.act(() => {
-      clickableElements.forEach(element => {
-          try { element.props.onPress(); } catch(e) {}
-      });
+      addButton.props.onPress();
     });
 
     expect(mockNavigate).toHaveBeenCalledWith('AddVisit', { restaurant: mockRestaurant });
@@ -138,20 +143,16 @@ describe('YumTam - Testy Integracyjne Interfejsu (Cross-Boundary)', () => {
     expect(virtualDOM).toContain('A-Z');
   });
 
-  it('TEST 4: Rozwijanie filtru znajomych wyświetla dynamiczne "chipy"', () => {
+  it('TEST 4: Rozwijanie filtru znajomych wyświetla dynamiczne "chipy" (Precyzyjnie)', () => {
     let view;
     TestRenderer.act(() => {
       view = TestRenderer.create(<JournalScreen navigation={mockNavigation} />);
     });
-    
     expect(safeStringify(view.toJSON())).not.toContain('Janek');
-
-    const clickableElements = view.root.findAll(node => node.props && typeof node.props.onPress === 'function');
+    const filterButton = view.root.findByProps({ testID: 'filter-toggle-button' });
     
     TestRenderer.act(() => {
-      clickableElements.forEach(element => {
-          try { element.props.onPress(); } catch(e) {}
-      });
+      filterButton.props.onPress();
     });
 
     expect(safeStringify(view.toJSON())).toContain('Janek');

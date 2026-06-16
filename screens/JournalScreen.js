@@ -41,6 +41,7 @@ export default function JournalScreen({ navigation }) {
       {availableCompanions.length > 0 && (
         <View style={styles.filterSection}>
           <TouchableOpacity 
+            testID="filter-toggle-button"
             style={styles.filterToggleBtn} 
             activeOpacity={0.7}
             onPress={() => setIsFilterVisible(!isFilterVisible)}
