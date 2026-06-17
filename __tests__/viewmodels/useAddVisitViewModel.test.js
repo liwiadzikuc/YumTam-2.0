@@ -40,10 +40,6 @@ describe('Testy useAddVisitViewModel', () => {
   it('TEST 1: zarządzanie companions', async () => {
     await act(async () => { create(<HookWrapper />); });
 
-    await act(async () => {
-      await Promise.resolve(); 
-    });
-
     act(() => { result.toggleCompanion('Kasia'); });
     expect(result.selectedCompanions).toContain('Kasia');
 
@@ -68,7 +64,7 @@ describe('Testy useAddVisitViewModel', () => {
 
     await act(async () => { await result.handleSave(); });
 
-    expect(Alert.alert).toHaveBeenCalledWith("Wymagana ocena", expect.any(String));
+    expect(Alert.alert).toHaveBeenCalledWith("Wymagana ocena", "Proszę ocenić wizytę (minimum 0.5 gwiazdki)!");
     
     expect(VisitModel.create).not.toHaveBeenCalled();
   });

@@ -19,7 +19,7 @@ jest.mock('@expo/vector-icons', () => ({ Ionicons: 'Ionicons' }));
 
 jest.mock('../../components/StarRating', () => 'StarRating');
 
-describe('VisitCard - Testy Komponentów Wizualnych i Warunkowych', () => {
+describe('Testy VisitCard', () => {
   
   const mockFullVisit = {
     resName: 'KFC',

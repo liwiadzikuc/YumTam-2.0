@@ -26,7 +26,7 @@ describe('Testy StarRating', () => {
     expect(iconNames).toEqual(['star', 'star', 'star', 'star-half', 'star-outline']);
   });
 
-  it('TEST 2: tryb read-only ukrywa strefy dotykowe', () => {
+  it('TEST 2: tryb read-only ukrywa przyciski', () => {
     let tree;
     act(() => { tree = create(<StarRating rating={4} />); });
     
@@ -34,7 +34,7 @@ describe('Testy StarRating', () => {
     expect(touchables.length).toBe(0);
   });
 
-  it('TEST 3: tryb interaktywny, wirtualne kliknięcie', () => {
+  it('TEST 3: tryb interaktywny, kliknięcie', () => {
     const mockOnRatingChange = jest.fn();
     let tree;
     act(() => { 

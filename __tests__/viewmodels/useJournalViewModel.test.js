@@ -29,8 +29,7 @@ describe('Testy useJournalViewModel', () => {
   });
 
   it('TEST 1: poprawne załadowanie wizyt i statystyk', async () => {
-    let root;
-    act(() => { root = create(<HookWrapper />); });
+    act(() => { create(<HookWrapper />); });
 
     await act(async () => { await result.loadData(); });
 
